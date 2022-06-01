@@ -1,0 +1,18 @@
+{
+    "exclusion": {
+        "generation": {
+            "regex": [
+                "^$",
+                "^struct .*$",
+                "^class .*$",
+                ".*(@|::|\\s|<).*",
+                "(std|gsl|mce|glm|entt|rapidjson|type_info|leveldb)"
+            ]
+        },
+        "inclusion": {
+            "regex": [
+                "^(std)$"
+            ]
+        }
+    }
+}
