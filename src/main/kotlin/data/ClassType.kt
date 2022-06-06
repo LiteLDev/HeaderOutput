@@ -93,6 +93,7 @@ class ClassType(
             }
             sb.appendLine("#endif")
         }
+        sb.appendLine()
         return sb.toString()
     }
 
@@ -113,45 +114,59 @@ class ClassType(
         }
         sb.appendLine("#endif")
 
-
         typeData.publicTypes?.sortedBy { it.method }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
         typeData.publicStaticTypes?.sortedBy { it.method }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
+        sb.appendLine()
         return sb.toString()
     }
 
-    fun genProtected(): String {
+    fun genProtected(genFunc: Boolean = true): String {
         if ((typeData.protectedTypes == null || typeData.protectedTypes?.isEmpty() == true)
-            && (typeData.protectedStaticTypes == null || typeData.protectedStaticTypes?.isEmpty() == true)) {
+            && (typeData.protectedStaticTypes == null || typeData.protectedStaticTypes?.isEmpty() == true)
+        ) {
             return ""
         }
         val sb = StringBuilder()
-        sb.appendLine("//protected:")
+        if (genFunc)
+            sb.appendLine("//protected:")
+        else
+            sb.appendLine("protected:")
         typeData.protectedTypes?.sortedBy { it.method }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
         typeData.protectedStaticTypes?.sortedBy { it.method }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
+        sb.appendLine()
         return sb.toString()
     }
 
-    fun genPrivate(): String {
+    fun genPrivate(genFunc: Boolean = true): String {
         if ((typeData.privateTypes == null || typeData.privateTypes?.isEmpty() == true)
-            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)) {
+            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)
+        ) {
             return ""
         }
         val sb = StringBuilder()
-        sb.appendLine("//private:")
+        if (genFunc)
+            sb.appendLine("//private:")
+        else
+            sb.appendLine("private:")
         typeData.privateTypes?.sortedBy { it.method }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
         typeData.privateStaticTypes?.sortedBy { it.method }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
+        sb.appendLine()
         return sb.toString()
     }
 }

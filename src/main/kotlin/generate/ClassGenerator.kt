@@ -26,9 +26,7 @@ class $name ${run { if (classType.parent != null) ": public ${classType.parent!!
 ${classType.afterAddition}
 #undef AFTER_EXTRA
 ${classType.genAntiReconstruction()}
-${classType.genPublic()}
-${classType.genProtected()}
-${classType.genPrivate()}
+${classType.genPublic()}${classType.genProtected()}${classType.genPrivate()}${classType.genProtected(genFunc = false)}${classType.genPrivate(genFunc = false)}
 };
 """.trimIndent()
             )
