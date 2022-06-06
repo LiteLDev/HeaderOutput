@@ -105,13 +105,15 @@ class ClassType(
                 .appendLine(it.genFuncString())
             counter++
         }
-        typeData.virtualUnordered?.also {
-            sb.appendLine("    /*")
-        }?.forEach {
-            if ((it.className ?: "").isEmpty() || it.className == name) sb.append("    ").appendLine(
-                it.genFuncString(useDlsym = true).replace("/*", "\\/*").replace("*/", "*\\/")
-            )
-        }?.run { sb.appendLine("    */") }
+
+        sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
+        //sb.appendLine("public:")
+        typeData.virtualUnordered?.sortedBy { it.method }?.forEach {
+            sb.append("    ").appendLine(it.genFuncString(useDlsym = true))
+        }
+        sb.appendLine("#endif")
+
+
         typeData.publicTypes?.sortedBy { it.method }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }

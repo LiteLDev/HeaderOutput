@@ -8,11 +8,12 @@ data class MemberTypeData(
     @field:JSONField(name = "class") val className: String?, // Mob
     @field:JSONField(name = "flag_bits") var flags: Int, // 1
     @field:JSONField(name = "member_type") var memberType: String?, // virtual
-    var method: String, // hasComponent
-    val params: List<String>,
+    @field:JSONField(name = "method") var method: String, // hasComponent
+    @field:JSONField(name = "params") val params: List<String>,
     @field:JSONField(name = "return") var returnType: String?, // bool
-    val rva: Long, // 13417264
-    val symbol: String, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
+    @field:JSONField(name = "rva") val rva: Long, // 13417264
+    @field:JSONField(name = "symbol") val symbol: String, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
+    @field:JSONField(name = "fake_symbol") val fakeSymbol: String?, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
 ) {
 
 
@@ -44,27 +45,22 @@ data class MemberTypeData(
                     };"
             }
         } else {
-            var inParams = ""
-            var forwardParams = ""
-            var defParams = ""
-            var counter = 0
-            params.forEach {
-                Regex("(.*)\\(\\*\\)(.*)").find(it)
-                    ?.run { inParams = "$inParams${groupValues[1]}(*a${counter})${groupValues[2]}, " }
-                    ?: run { inParams = "$inParams$it a${counter}, " }
-                forwardParams = "${forwardParams}std::forward<$it>(a$counter), "
-                defParams = "${defParams}$it, "
-                counter++
-            }
-            inParams = inParams.removeSuffix(", ")
-            forwardParams = forwardParams.removeSuffix(", ")
-            defParams = defParams.removeSuffix(", ")
-
-            ret = """inline $returnType $method($inParams)${run { if (isConst()) " const" else "" }}{
-        $returnType ($className::*rv)($defParams)${run { if (isConst()) " const" else "" }};
-        *((void**)&rv) = dlsym("$symbol");
-        return (this->*rv)($forwardParams);
-    }"""
+            if (isOperator() && (method.startsWith("operator ") || method == "operator $returnType"))
+                returnType = ""
+            var paramsString = ""
+            params.forEach { paramsString = "$paramsString$it, " }
+            if (paramsString != "") paramsString = paramsString.substring(0, paramsString.length - 2)
+            ret =
+                "${run { if (isVirtual()) "MCVAPI " else "MCAPI " }}${run { if (isPtrCall() || isVirtual() || namespace) "" else "static " }}${
+                    run {
+                        if (returnType != "") "$returnType "
+                        else ""
+                    }
+                }${method}($paramsString)${
+                    run {
+                        if (isConst()) " const" else ""
+                    }
+                };"
         }
         // if (isVirtual()) ret = ret.replace(Regex("(enum ([a-zA-Z_:][a-zA-Z:_0-9]*))"), "int /*enum \$1*/")
         return ret.replace(
@@ -99,12 +95,12 @@ data class MemberTypeData(
     fun isPureCall() = flags and PURE_CALL == PURE_CALL
 
     fun addFlag(flag: Int) {
-        if(flags and flag != flag)
+        if (flags and flag != flag)
             flags += flag
     }
 
     fun removeFlag(flag: Int) {
-        if(flags and flag == flag)
+        if (flags and flag == flag)
             flags -= flag
     }
 
