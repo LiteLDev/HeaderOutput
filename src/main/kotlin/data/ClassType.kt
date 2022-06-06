@@ -107,7 +107,7 @@ class ClassType(
         }
 
         sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
-        //sb.appendLine("public:")
+        sb.appendLine("public:")
         typeData.virtualUnordered?.sortedBy { it.method }?.forEach {
             sb.append("    ").appendLine(it.genFuncString(useDlsym = true))
         }
@@ -124,8 +124,12 @@ class ClassType(
     }
 
     fun genProtected(): String {
+        if ((typeData.protectedTypes == null || typeData.protectedTypes?.isEmpty() == true)
+            && (typeData.protectedStaticTypes == null || typeData.protectedStaticTypes?.isEmpty() == true)) {
+            return ""
+        }
         val sb = StringBuilder()
-        sb.appendLine("protected:")
+        sb.appendLine("//protected:")
         typeData.protectedTypes?.sortedBy { it.method }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
@@ -136,8 +140,12 @@ class ClassType(
     }
 
     fun genPrivate(): String {
+        if ((typeData.privateTypes == null || typeData.privateTypes?.isEmpty() == true)
+            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)) {
+            return ""
+        }
         val sb = StringBuilder()
-        sb.appendLine("private:")
+        sb.appendLine("//private:")
         typeData.privateTypes?.sortedBy { it.method }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
