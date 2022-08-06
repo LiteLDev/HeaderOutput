@@ -1,8 +1,9 @@
-package data
+package com.liteldev.headeroutput.entity
 
-import OLD_PATH
-import classMap
-import substring
+import com.liteldev.headeroutput.HeaderOutput
+import com.liteldev.headeroutput.config.MemberTypeData
+import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.substring
 import java.io.File
 
 class ClassType(
@@ -24,7 +25,7 @@ class ClassType(
 //        beforeAddition = origin.substring("#ifdef EXTRA_INCLUDE_PART_${name.uppercase()}\n", "\n#else")
 //        afterAddition = origin.substring("#else\n", "\n#endif")
 //        return
-        val origin = File(OLD_PATH, getPath()).readText().replace("\r\n", "\n")
+        val origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
         beforeAddition = origin.substring(
             "#define BEFORE_EXTRA\n", "\n#undef BEFORE_EXTRA"
         )
@@ -51,7 +52,7 @@ class ClassType(
 
     fun constructLinkedClassMap(rootClasses: MutableMap<String, ClassType>) {
         typeData.parentTypes?.also { parentNames ->
-            parent = classMap[parentNames[0]]?.also {
+            parent = HeaderOutput.classMap[parentNames[0]]?.also {
                 it.children[name] = this
             }
         } ?: run { rootClasses[name] = this }

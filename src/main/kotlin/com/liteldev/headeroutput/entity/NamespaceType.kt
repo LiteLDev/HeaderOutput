@@ -1,7 +1,8 @@
-package data
+package com.liteldev.headeroutput.entity
 
-import OLD_PATH
-import substring
+import com.liteldev.headeroutput.HeaderOutput
+import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.substring
 import java.io.File
 
 class NamespaceType(
@@ -12,7 +13,7 @@ class NamespaceType(
     }
 
     override fun readOldAddition() {
-        val origin = File(OLD_PATH, getPath()).readText().replace("\r\n", "\n")
+        val origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
         beforeAddition = origin.substring(
             "#define BEFORE_EXTRA\n",
             "\n#undef BEFORE_EXTRA"

@@ -1,5 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.5.10"
+    kotlin("jvm") version "1.7.10"
+    kotlin("plugin.serialization") version "1.7.10"
     java
 }
 
@@ -12,9 +13,10 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.alibaba:fastjson:1.2.78")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.10")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 

@@ -1,12 +1,10 @@
-package data
+package com.liteldev.headeroutput.entity
 
-import RULE
-import classMap
-import namespaceMap
-import notExistBaseType
-import parent
-import relativePath
-import structMap
+import com.liteldev.headeroutput.HeaderOutput
+import com.liteldev.headeroutput.config.MemberTypeData
+import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.parent
+import com.liteldev.headeroutput.relativePath
 
 abstract class BaseType(
     var name: String,
@@ -32,17 +30,27 @@ abstract class BaseType(
                 retList.add(it.groupValues[1])
             }
         }
-        return retList.filter { inclusion -> RULE.exclusion.inclusion.regex.find { inclusion.matches(Regex(it)) } == null }
+        return retList.filter { inclusion ->
+            HeaderOutput.generatorConfig.exclusion.inclusion.regex.find {
+                inclusion.matches(
+                    Regex(it)
+                )
+            } == null
+        }
             .toSet()
     }
 
     private fun readList(list: List<MemberTypeData>) = readIncludeClassFromMembers(list).filter {
-        val ret = classMap.contains(it) || structMap.contains(it) || namespaceMap.contains(it)
+        val ret =
+            HeaderOutput.classMap.contains(it) || HeaderOutput.structMap.contains(it) || HeaderOutput.namespaceMap.contains(
+                it
+            )
         if (!ret) {
-            notExistBaseType.add(it)
+            HeaderOutput.notExistBaseType.add(it)
         }
         ret
-    }.map { classMap[it] ?: structMap[it] ?: namespaceMap[it]!! }.let(includeList::addAll)
+    }.map { HeaderOutput.classMap[it] ?: HeaderOutput.structMap[it] ?: HeaderOutput.namespaceMap[it]!! }
+        .let(includeList::addAll)
 
     fun getGlobalRelativePath() = getPath().parent().relativePath("../Global.h")
 
