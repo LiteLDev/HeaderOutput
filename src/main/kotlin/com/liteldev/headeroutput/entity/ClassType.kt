@@ -65,18 +65,18 @@ class ClassType(
         typeData.publicTypes?.let(public::addAll)
         typeData.protectedTypes?.let(public::addAll)
         typeData.privateTypes?.let(public::addAll)
-        public.filter { it.isNew() || (it.isOperator() && it.method == "operator=") }
+        public.filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
             .let(public::addAll)
         val genOperator = public.find {
-            it.isOperator() && it.params.run {
-                size == 1 && this[0] == "class $name const &"
-            } && it.returnType == "class $name &"
+            it.isOperator() && it.params?.run {
+                size == 1 && this[0].Name  == "class $name const &"
+            } == true && it.valType?.Name == "class $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.method == name && it.params.isEmpty() } == null
+        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() == true } == null
         val genMoveConstructor = public.find {
-            it.method == name && it.params.run {
-                size == 1 && this[0] == "class $name const &"
-            }
+            it.name == name && it.params?.run {
+                size == 1 && this[0].Name  == "class $name const &"
+            } == true
         } == null
         val sb = StringBuilder()
         if (genOperator || genEmptyParamConstructor || genMoveConstructor) {
@@ -103,21 +103,21 @@ class ClassType(
         sb.appendLine("public:")
         var counter = 0
         typeData.virtual?.forEach {
-            if ((it.className ?: "").isEmpty() || it.className == name) sb.append("    /*${counter}*/ ")
+            if ((it.namespace ?: "").isEmpty() || it.namespace == name) sb.append("    /*${counter}*/ ")
                 .appendLine(it.genFuncString())
             counter++
         }
 
         sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
-        typeData.virtualUnordered?.sortedBy { it.method }?.forEach {
+        typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString(useDlsym = true))
         }
         sb.appendLine("#endif")
 
-        typeData.publicTypes?.sortedBy { it.method }?.forEach {
+        typeData.publicTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
-        typeData.publicStaticTypes?.sortedBy { it.method }?.forEach {
+        typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
         sb.appendLine()
@@ -135,11 +135,11 @@ class ClassType(
             sb.appendLine("//protected:")
         else
             sb.appendLine("protected:")
-        typeData.protectedTypes?.sortedBy { it.method }?.forEach {
+        typeData.protectedTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.append("    ").appendLine(it.genFuncString())
         }
-        typeData.protectedStaticTypes?.sortedBy { it.method }?.forEach {
+        typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.append("    ").appendLine(it.genFuncString())
         }
@@ -158,11 +158,11 @@ class ClassType(
             sb.appendLine("//private:")
         else
             sb.appendLine("private:")
-        typeData.privateTypes?.sortedBy { it.method }?.forEach {
+        typeData.privateTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.append("    ").appendLine(it.genFuncString())
         }
-        typeData.privateStaticTypes?.sortedBy { it.method }?.forEach {
+        typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.append("    ").appendLine(it.genFuncString())
         }

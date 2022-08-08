@@ -3,9 +3,7 @@ package com.liteldev.headeroutput
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.config.MemberTypeData
 import com.liteldev.headeroutput.config.TypeData
-import com.liteldev.headeroutput.entity.ClassType
-import com.liteldev.headeroutput.entity.NamespaceType
-import com.liteldev.headeroutput.entity.StructType
+import com.liteldev.headeroutput.entity.*
 import com.liteldev.headeroutput.generate.ClassGenerator
 import com.liteldev.headeroutput.generate.NamespaceGenerator
 import com.liteldev.headeroutput.generate.StructGenerator
@@ -132,13 +130,12 @@ object HeaderOutput {
                 var counter = 0
                 type.virtual?.forEach { memberType ->
                     run {
-                        if (memberType.method == "" && !memberType.isUnknownFunction()) memberType.addFlag(
-                            MemberTypeData.UNKNOWN_FUNCTION
-                        )
+                        if (memberType.name == "" && !memberType.isUnknownFunction())
+                            memberType.symbolType = SymbolNodeType.Unknown
                         if (memberType.isUnknownFunction()) {
-                            memberType.memberType = "virtual"
+                            memberType.storageClass = StorageClassType.Virtual
                             memberType.addFlag(MemberTypeData.PTR_CALL)
-                            memberType.method = "void __unk_vfn_${counter}"
+                            memberType.name = "void __unk_vfn_${counter}"
                         }
                         counter++
                     }

@@ -25,18 +25,18 @@ class StructType(
 
     fun genAntiReconstruction(): String {
         val public = arrayListOf<MemberTypeData>()
-        typeData.publicTypes?.filter { it.isNew() || (it.isOperator() && it.method == "operator=") }
+        typeData.publicTypes?.filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
             ?.let(public::addAll)
         val genOperator = public.find {
-            it.isOperator() && it.params.run {
-                size == 1 && this[0] == "struct $name const &"
-            } && it.returnType == "struct $name &"
+            it.isOperator() && it.params?.run {
+                size == 1 && this[0].Name  == "struct $name const &"
+            } == true && it.valType?.Name  == "struct $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.method == name && it.params.isEmpty() } == null
+        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() == true } == null
         val genMoveConstructor = public.find {
-            it.method == name && it.params.run {
-                size == 1 && this[0] == "struct $name const &"
-            }
+            it.name == name && it.params?.run {
+                size == 1 && this[0].Name  == "struct $name const &"
+            } == true
         } == null
         val sb = StringBuilder()
         if (genOperator || genEmptyParamConstructor || genMoveConstructor) {
@@ -60,7 +60,7 @@ class StructType(
     fun genPublic(): String {
         val sb = StringBuilder()
         sb.appendLine("public:")
-        typeData.publicTypes?.sortedBy { it.method }?.forEach {
+        typeData.publicTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
         return sb.toString()
@@ -69,10 +69,10 @@ class StructType(
     fun genProtected(): String {
         val sb = StringBuilder()
         sb.appendLine("protected:")
-        typeData.protectedTypes?.sortedBy { it.method }?.forEach {
+        typeData.protectedTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
-        typeData.protectedStaticTypes?.sortedBy { it.method }?.forEach {
+        typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
         return sb.toString()
@@ -81,10 +81,10 @@ class StructType(
     fun genPrivate(): String {
         val sb = StringBuilder()
         sb.appendLine("private:")
-        typeData.privateTypes?.sortedBy { it.method }?.forEach {
+        typeData.privateTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
-        typeData.privateStaticTypes?.sortedBy { it.method }?.forEach {
+        typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
         return sb.toString()

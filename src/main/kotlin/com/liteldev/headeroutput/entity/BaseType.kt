@@ -22,11 +22,13 @@ abstract class BaseType(
         val retList = mutableSetOf<String>()
         list.forEach { memberType ->
             memberType.params.forEach { param ->
-                Regex("(\\w+)::").findAll(param).forEach {
-                    retList.add(it.groupValues[1])
+                param.Name?.let {
+                    Regex("(\\w+)::").findAll(it).forEach {
+                        retList.add(it.groupValues[1])
+                    }
                 }
             }
-            Regex("(\\w+)::").findAll(memberType.returnType ?: "").forEach {
+            Regex("(\\w+)::").findAll(memberType.valType.Name ?: "").forEach {
                 retList.add(it.groupValues[1])
             }
         }

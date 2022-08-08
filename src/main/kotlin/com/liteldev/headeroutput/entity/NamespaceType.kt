@@ -26,7 +26,7 @@ class NamespaceType(
 
     fun genPublic(): String {
         val sb = StringBuilder()
-        typeData.publicTypes?.sortedBy { it.method }?.forEach {
+        typeData.publicTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString(namespace = true))
         }
         return sb.toString()
