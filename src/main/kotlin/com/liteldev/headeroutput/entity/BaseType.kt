@@ -21,14 +21,14 @@ abstract class BaseType(
     private fun readIncludeClassFromMembers(list: List<MemberTypeData>): Set<String> {
         val retList = mutableSetOf<String>()
         list.forEach { memberType ->
-            memberType.params.forEach { param ->
-                param.Name?.let {
+            memberType.params?.forEach { param ->
+                param.Name?.let { it ->
                     Regex("(\\w+)::").findAll(it).forEach {
                         retList.add(it.groupValues[1])
                     }
                 }
             }
-            Regex("(\\w+)::").findAll(memberType.valType.Name ?: "").forEach {
+            Regex("(\\w+)::").findAll(memberType.valType?.Name ?: "").forEach {
                 retList.add(it.groupValues[1])
             }
         }

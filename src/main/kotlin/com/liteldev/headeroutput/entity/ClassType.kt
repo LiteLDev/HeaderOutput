@@ -69,13 +69,13 @@ class ClassType(
             .let(public::addAll)
         val genOperator = public.find {
             it.isOperator() && it.params?.run {
-                size == 1 && this[0].Name  == "class $name const &"
+                size == 1 && this[0].Name == "class $name const &"
             } == true && it.valType?.Name == "class $name &"
         } == null
         val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() == true } == null
         val genMoveConstructor = public.find {
             it.name == name && it.params?.run {
-                size == 1 && this[0].Name  == "class $name const &"
+                size == 1 && this[0].Name == "class $name const &"
             } == true
         } == null
         val sb = StringBuilder()
@@ -120,6 +120,9 @@ class ClassType(
         typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
+        if (sb.equals("public:"))
+            return ""
+        sb.trim()
         sb.appendLine()
         return sb.toString()
     }
@@ -143,6 +146,9 @@ class ClassType(
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.append("    ").appendLine(it.genFuncString())
         }
+        if (sb.equals("protected:") || sb.equals("//protected:"))
+            return ""
+        sb.trim()
         sb.appendLine()
         return sb.toString()
     }
@@ -166,6 +172,9 @@ class ClassType(
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.append("    ").appendLine(it.genFuncString())
         }
+        if (sb.equals("private:") || sb.equals("//private:"))
+            return ""
+        sb.trim()
         sb.appendLine()
         return sb.toString()
     }

@@ -24,12 +24,16 @@ class $name ${run { if (classType.parent != null) ": public ${classType.parent!!
 #define AFTER_EXTRA
 ${classType.afterAddition}
 #undef AFTER_EXTRA
-${classType.genAntiReconstruction()}
-${classType.genPublic()}${classType.genProtected()}${classType.genPrivate()}
-${classType.genProtected(genFunc = false)}${classType.genPrivate(genFunc = false)}
-};
 """.trimIndent()
             )
+            hpp.appendText(classType.genAntiReconstruction())
+            hpp.appendText(classType.genPublic())
+            hpp.appendText(classType.genProtected())
+            hpp.appendText(classType.genPrivate())
+            hpp.appendText(classType.genProtected(genFunc = false))
+            hpp.appendText(classType.genPrivate(genFunc = false))
+            hpp.appendText("};")
+
         }
     }
 }

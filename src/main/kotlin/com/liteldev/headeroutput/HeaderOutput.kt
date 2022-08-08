@@ -7,15 +7,20 @@ import com.liteldev.headeroutput.entity.*
 import com.liteldev.headeroutput.generate.ClassGenerator
 import com.liteldev.headeroutput.generate.NamespaceGenerator
 import com.liteldev.headeroutput.generate.StructGenerator
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import java.io.File
 
+
+@OptIn(ExperimentalSerializationApi::class)
+private val json = Json { explicitNulls = false }
+
 object HeaderOutput {
 
-    private const val JSON_PATH = "Z:\\originalData.json"
-    const val OLD_PATH = "Z:\\MC"
-    const val GENERATE_PATH = "Z:\\headers"
+    private const val JSON_PATH = "Z:/originalData.json"
+    const val OLD_PATH = "Z:/MC"
+    const val GENERATE_PATH = "Z:/headers"
 
     private lateinit var originData: JsonObject
     private lateinit var funcListOfTypes: Map<String, TypeData>
@@ -112,7 +117,7 @@ object HeaderOutput {
     private fun loadConfig() {
         println("Loading config...")
         val configText = File("config.json").readText()
-        generatorConfig = Json.decodeFromString(configText)
+        generatorConfig = json.decodeFromString(configText)
     }
 
     private fun loadOriginData() {
@@ -126,7 +131,7 @@ object HeaderOutput {
         funcListOfTypes = originData["classes"]?.jsonObject?.filter { (k, _) ->
             generatorConfig.exclusion.generation.regex.find { k.matches(Regex(it)) } == null
         }?.mapValues { entry ->
-            Json.decodeFromJsonElement<TypeData>(entry.value).also { type ->
+            json.decodeFromJsonElement<TypeData>(entry.value).also { type ->
                 var counter = 0
                 type.virtual?.forEach { memberType ->
                     run {
