@@ -11,9 +11,9 @@ data class MemberTypeData(
     @SerialName("storage_class") var storageClass: StorageClassType,
     @SerialName("access_type") val accessType: AccessType, // public
     @SerialName("symbol_type") var symbolType: SymbolNodeType,
-    @SerialName("type") val valType: VariableTypeData?,
-    @SerialName("namespace") val namespace: String?, // Mob
-    @SerialName("name") var name: String?, // hasComponent
+    @SerialName("type") val valType: VariableTypeData,
+    @SerialName("namespace") val namespace: String, // Mob
+    @SerialName("name") var name: String, // hasComponent
     @SerialName("params") val params: List<VariableTypeData>?,
     @SerialName("flag_bits") var flags: Int, // 1
 
