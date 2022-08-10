@@ -72,7 +72,7 @@ class ClassType(
                 size == 1 && this[0].Name == "class $name const &"
             } == true && it.valType?.Name == "class $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() == true } == null
+        val genEmptyParamConstructor = public.find { it.name == name && (it.params==null || it.params.isEmpty()) } == null
         val genMoveConstructor = public.find {
             it.name == name && it.params?.run {
                 size == 1 && this[0].Name == "class $name const &"
