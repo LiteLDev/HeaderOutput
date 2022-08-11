@@ -4,7 +4,7 @@ plugins {
     java
 }
 
-group = "tech.rimuruchan"
+group = "com.liteldev"
 version = "1.0-SNAPSHOT"
 
 repositories {
