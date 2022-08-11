@@ -30,9 +30,9 @@ class StructType(
         val genOperator = public.find {
             it.isOperator() && it.params?.run {
                 size == 1 && this[0].Name  == "struct $name const &"
-            } == true && it.valType?.Name  == "struct $name &"
+            } == true && it.valType.Name == "struct $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() == true } == null
+        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() ?: true } == null
         val genMoveConstructor = public.find {
             it.name == name && it.params?.run {
                 size == 1 && this[0].Name  == "struct $name const &"
@@ -60,33 +60,81 @@ class StructType(
     fun genPublic(): String {
         val sb = StringBuilder()
         sb.appendLine("public:")
+        var counter = 0
+        typeData.virtual?.forEach {
+            if (it.namespace.isEmpty() || it.namespace == name) sb.append("    /*${counter}*/ ")
+                .appendLine(it.genFuncString())
+            counter++
+        }
+
+        sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
+        typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
+            sb.append("    ").appendLine(it.genFuncString(use_fake_symbol = true))
+        }
+        sb.appendLine("#endif")
+
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
             sb.append("    ").appendLine(it.genFuncString())
         }
+        typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
+            sb.append("    ").appendLine(it.genFuncString())
+        }
+        if (sb.equals("public:"))
+            return ""
+        sb.trim()
+        sb.appendLine()
         return sb.toString()
     }
 
-    fun genProtected(): String {
+    fun genProtected(genFunc: Boolean = true): String {
+        if ((typeData.protectedTypes == null || typeData.protectedTypes?.isEmpty() == true)
+            && (typeData.protectedStaticTypes == null || typeData.protectedStaticTypes?.isEmpty() == true)
+        ) {
+            return ""
+        }
         val sb = StringBuilder()
-        sb.appendLine("protected:")
+        if (genFunc)
+            sb.appendLine("//protected:")
+        else
+            sb.appendLine("protected:")
         typeData.protectedTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
         typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
+        if (sb.equals("protected:") || sb.equals("//protected:"))
+            return ""
+        sb.trim()
+        sb.appendLine()
         return sb.toString()
     }
 
-    fun genPrivate(): String {
+    fun genPrivate(genFunc: Boolean = true): String {
+        if ((typeData.privateTypes == null || typeData.privateTypes?.isEmpty() == true)
+            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)
+        ) {
+            return ""
+        }
         val sb = StringBuilder()
-        sb.appendLine("private:")
+        if (genFunc)
+            sb.appendLine("//private:")
+        else
+            sb.appendLine("private:")
         typeData.privateTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
         typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
+                sb.append("    ").appendLine(it.genFuncString())
         }
+        if (sb.equals("private:") || sb.equals("//private:"))
+            return ""
+        sb.trim()
+        sb.appendLine()
         return sb.toString()
     }
 }

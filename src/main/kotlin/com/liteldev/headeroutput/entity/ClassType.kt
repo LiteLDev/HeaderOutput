@@ -70,9 +70,9 @@ class ClassType(
         val genOperator = public.find {
             it.isOperator() && it.params?.run {
                 size == 1 && this[0].Name == "class $name const &"
-            } == true && it.valType?.Name == "class $name &"
+            } == true && it.valType.Name == "class $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.name == name && (it.params==null || it.params.isEmpty()) } == null
+        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() ?: true } == null
         val genMoveConstructor = public.find {
             it.name == name && it.params?.run {
                 size == 1 && this[0].Name == "class $name const &"
@@ -103,7 +103,7 @@ class ClassType(
         sb.appendLine("public:")
         var counter = 0
         typeData.virtual?.forEach {
-            if ((it.namespace ?: "").isEmpty() || it.namespace == name) sb.append("    /*${counter}*/ ")
+            if (it.namespace.isEmpty() || it.namespace == name) sb.append("    /*${counter}*/ ")
                 .appendLine(it.genFuncString())
             counter++
         }
