@@ -26,23 +26,23 @@ data class MemberTypeData(
     fun genFuncString(namespace: Boolean = false, useDlsym: Boolean = false): String {
         var ret = StringBuilder()
         if (isStaticGlobalVariable()) {
-            ret = StringBuilder("MCAPI ${if (!namespace) "static " else "extern "}${valType!!.Name} $name;")
+            ret = StringBuilder("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
         } else {
-            if (isOperator() && (name?.startsWith("operator ") == true || name == "operator ${valType!!.Name}"))
-                valType?.Name = ""
+            if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.Name}"))
+                valType.Name = ""
             var paramsString = ""
             params?.forEach { paramsString = "$paramsString${it.Name}, " }
             if (paramsString != "") paramsString = paramsString.substring(0, paramsString.length - 2)
             if (useDlsym) {
                 ret.append(run { if (isVirtual()) "MCVAPI " else "MCAPI " })
                 if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
-                if (valType?.Name != "") ret.append("${valType!!.Name} ")
+                if (valType.Name != "") ret.append("${valType.Name} ")
                 ret.append("${name}($paramsString)")
                 if (isConst()) ret.append(" const")
             } else {
                 ret.append(run { if (isVirtual()) "virtual " else "MCAPI " })
                 if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
-                if (valType?.Name != "") ret.append("${valType!!.Name} ")
+                if (valType.Name != "") ret.append("${valType.Name} ")
                 ret.append("$name($paramsString)")
                 if (isConst()) ret.append(" const")
                 if (isPureCall()) ret.append(" = 0")
