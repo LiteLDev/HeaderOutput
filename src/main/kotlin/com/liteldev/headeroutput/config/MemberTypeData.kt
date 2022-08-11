@@ -23,7 +23,7 @@ data class MemberTypeData(
 ) {
 
 
-    fun genFuncString(namespace: Boolean = false, useDlsym: Boolean = false): String {
+    fun genFuncString(namespace: Boolean = false, use_fake_symbol: Boolean = false): String {
         var ret = StringBuilder()
         if (isStaticGlobalVariable()) {
             ret = StringBuilder("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
@@ -33,21 +33,21 @@ data class MemberTypeData(
             var paramsString = ""
             params?.forEach { paramsString = "$paramsString${it.Name}, " }
             if (paramsString != "") paramsString = paramsString.substring(0, paramsString.length - 2)
-            if (useDlsym) {
-                ret.append(run { if (isVirtual()) "MCVAPI " else "MCAPI " })
-                if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
-                if (valType.Name != "") ret.append("${valType.Name} ")
-                ret.append("${name}($paramsString)")
-                if (isConst()) ret.append(" const")
-            } else {
-                ret.append(run { if (isVirtual()) "virtual " else "MCAPI " })
-                if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
-                if (valType.Name != "") ret.append("${valType.Name} ")
-                ret.append("$name($paramsString)")
-                if (isConst()) ret.append(" const")
-                if (isPureCall()) ret.append(" = 0")
-                ret.append(";")
-            }
+
+            ret.append(run {
+                if (isVirtual())
+                    if (use_fake_symbol) "MCVAPI "
+                    else "virtual "
+                else
+                    "MCAPI "
+            })
+            if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
+            if (valType.Name != "") ret.append("${valType.Name} ")
+            ret.append("$name($paramsString)")
+            if (isConst()) ret.append(" const")
+            if (isPureCall()) ret.append(" = 0")
+            ret.append(";")
+
         }
         // if (isVirtual()) ret = ret.replace(Regex("(enum ([a-zA-Z_:][a-zA-Z:_0-9]*))"), "int /*enum \$1*/")
         return ret.replace(

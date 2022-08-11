@@ -110,7 +110,7 @@ class ClassType(
 
         sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
         typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString(useDlsym = true))
+            sb.append("    ").appendLine(it.genFuncString(use_fake_symbol = true))
         }
         sb.appendLine("#endif")
 
