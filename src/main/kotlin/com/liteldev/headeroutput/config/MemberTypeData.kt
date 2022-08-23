@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput.config
 
+import com.liteldev.headeroutput.appendSpace
 import com.liteldev.headeroutput.entity.AccessType
 import com.liteldev.headeroutput.entity.StorageClassType
 import com.liteldev.headeroutput.entity.SymbolNodeType
@@ -23,8 +24,19 @@ data class MemberTypeData(
 ) {
 
 
-    fun genFuncString(namespace: Boolean = false, use_fake_symbol: Boolean = false): String {
+    fun genFuncString(namespace: Boolean = false, use_fake_symbol: Boolean = false, comment: String = "", vIndex: Int = -1): String {
         var ret = StringBuilder()
+        if (comment.isNotEmpty()) {
+            ret.append(comment)
+        } else {
+            ret.appendSpace(4).append("/**\n")
+            if (isVirtual()) {
+                ret.appendSpace(4 + 1).append("* @note   Virtual function table index: $vIndex\n")
+            }
+            ret.appendSpace(4 + 1).append("* @symbol $symbol\n")
+            ret.appendSpace(4 + 1).append("*/\n")
+        }
+        ret.appendSpace(4)
         if (isStaticGlobalVariable()) {
             ret = StringBuilder("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
         } else {

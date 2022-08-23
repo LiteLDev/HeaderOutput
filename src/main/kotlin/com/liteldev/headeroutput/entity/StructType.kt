@@ -8,7 +8,7 @@ import java.io.File
 
 class StructType(
     name: String, typeData: TypeData,
-) : BaseType(name, typeData) {
+) : ClassType(name, typeData) {
     override fun getPath(): String {
         return "./$name.hpp"
     }
@@ -21,9 +21,14 @@ class StructType(
         afterAddition = origin.substring(
             "#define AFTER_EXTRA\n", "\n#undef AFTER_EXTRA"
         )
+        readComments()
     }
 
-    fun genAntiReconstruction(): String {
+    override fun readComments() {
+        readComments("struct")
+    }
+
+    override fun genAntiReconstruction(): String {
         val public = arrayListOf<MemberTypeData>()
         typeData.publicTypes?.filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
             ?.let(public::addAll)
@@ -57,84 +62,4 @@ class StructType(
         return sb.toString()
     }
 
-    fun genPublic(): String {
-        val sb = StringBuilder()
-        sb.appendLine("public:")
-        var counter = 0
-        typeData.virtual?.forEach {
-            if (it.namespace.isEmpty() || it.namespace == name) sb.append("    /*${counter}*/ ")
-                .appendLine(it.genFuncString())
-            counter++
-        }
-
-        sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
-        typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString(use_fake_symbol = true))
-        }
-        sb.appendLine("#endif")
-
-        typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
-        }
-        typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
-        }
-        if (sb.equals("public:"))
-            return ""
-        sb.trim()
-        sb.appendLine()
-        return sb.toString()
-    }
-
-    fun genProtected(genFunc: Boolean = true): String {
-        if ((typeData.protectedTypes == null || typeData.protectedTypes?.isEmpty() == true)
-            && (typeData.protectedStaticTypes == null || typeData.protectedStaticTypes?.isEmpty() == true)
-        ) {
-            return ""
-        }
-        val sb = StringBuilder()
-        if (genFunc)
-            sb.appendLine("//protected:")
-        else
-            sb.appendLine("protected:")
-        typeData.protectedTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
-        }
-        typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
-        }
-        if (sb.equals("protected:") || sb.equals("//protected:"))
-            return ""
-        sb.trim()
-        sb.appendLine()
-        return sb.toString()
-    }
-
-    fun genPrivate(genFunc: Boolean = true): String {
-        if ((typeData.privateTypes == null || typeData.privateTypes?.isEmpty() == true)
-            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)
-        ) {
-            return ""
-        }
-        val sb = StringBuilder()
-        if (genFunc)
-            sb.appendLine("//private:")
-        else
-            sb.appendLine("private:")
-        typeData.privateTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
-        }
-        typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
-        }
-        if (sb.equals("private:") || sb.equals("//private:"))
-            return ""
-        sb.trim()
-        sb.appendLine()
-        return sb.toString()
-    }
 }

@@ -5,6 +5,8 @@ import com.liteldev.headeroutput.config.MemberTypeData
 import com.liteldev.headeroutput.config.TypeData
 import com.liteldev.headeroutput.parent
 import com.liteldev.headeroutput.relativePath
+import com.liteldev.headeroutput.substring
+import java.io.File
 
 abstract class BaseType(
     var name: String,
@@ -12,11 +14,47 @@ abstract class BaseType(
     val includeList: MutableSet<BaseType> = mutableSetOf(),
     var beforeAddition: String = "",
     var afterAddition: String = "",
+    var comment: String = "",
+    var memberComments: MutableMap<String, String> = mutableMapOf(),
 ) {
 
     abstract fun getPath(): String
 
     abstract fun readOldAddition()
+
+    abstract fun readComments()
+
+    protected fun readComments(flag: String) {
+        val regex = Regex("/\\*\\*\n([\\S\\s]+)\\*/\n$flag", RegexOption.MULTILINE)
+        var origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
+        origin = origin.substring("", "#define BEFORE_EXTRA\n") +
+                origin.substring("#undef BEFORE_EXTRA\n", "\n#define AFTER_EXTRA") +
+                origin.substring("#undef AFTER_EXTRA\n")
+        comment = regex.find(origin)?.groupValues?.get(0)?.substring("", "\n$flag") ?: ""
+        val classBody = origin.substring("$flag $name ", "\n};") ?: ""
+        var inComment = false
+        var lastComment = ""
+        var symbol = ""
+        classBody.split("\n").forEach {
+            if (it.contains("/**")) {
+                inComment = true
+            }
+            if (inComment) {
+                lastComment += it + "\n"
+                if (it.contains("@symbol")) {
+                    symbol = it.substring("@symbol ", "").trim();
+                }
+            }
+            if (it.contains("*/")) {
+                inComment = false
+                if (symbol.isNotEmpty()) {
+                    memberComments[symbol] = lastComment
+                    symbol = ""
+                    lastComment = ""
+                }
+            }
+        }
+    }
 
     private fun readIncludeClassFromMembers(list: List<MemberTypeData>): Set<String> {
         val retList = mutableSetOf<String>()

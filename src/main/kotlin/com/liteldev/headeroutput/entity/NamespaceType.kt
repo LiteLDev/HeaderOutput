@@ -22,12 +22,17 @@ class NamespaceType(
             "#define AFTER_EXTRA\n",
             "\n#undef AFTER_EXTRA"
         )
+        readComments()
+    }
+
+    override fun readComments() {
+        readComments("namespace")
     }
 
     fun genPublic(): String {
         val sb = StringBuilder()
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString(namespace = true))
+            sb.appendLine(it.genFuncString(namespace = true, comment = memberComments.getOrDefault(it.symbol, "")))
         }
         return sb.toString()
     }

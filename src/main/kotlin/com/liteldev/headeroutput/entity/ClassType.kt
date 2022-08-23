@@ -6,7 +6,7 @@ import com.liteldev.headeroutput.config.TypeData
 import com.liteldev.headeroutput.substring
 import java.io.File
 
-class ClassType(
+open class ClassType(
     name: String, typeData: TypeData,
     var parent: ClassType? = null,
     private val children: MutableMap<String, ClassType> = mutableMapOf(),
@@ -32,6 +32,11 @@ class ClassType(
         afterAddition = origin.substring(
             "#define AFTER_EXTRA\n", "\n#undef AFTER_EXTRA"
         )
+        readComments()
+    }
+
+    override fun readComments() {
+        readComments("class")
     }
 
     override fun hashCode(): Int {
@@ -59,7 +64,7 @@ class ClassType(
         parent?.let(includeList::add)
     }
 
-    fun genAntiReconstruction(): String {
+    open fun genAntiReconstruction(): String {
         val public = arrayListOf<MemberTypeData>()
         typeData.virtual?.let(public::addAll)
         typeData.publicTypes?.let(public::addAll)
@@ -103,22 +108,26 @@ class ClassType(
         sb.appendLine("public:")
         var counter = 0
         typeData.virtual?.forEach {
-            if (it.namespace.isEmpty() || it.namespace == name) sb.append("    /*${counter}*/ ")
-                .appendLine(it.genFuncString())
+            if (it.namespace.isEmpty() || it.namespace == name)
+                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, ""), vIndex = counter))
+            memberComments.remove(it.symbol)
             counter++
         }
 
         sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
         typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString(use_fake_symbol = true))
+            sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.fakeSymbol!!, ""), use_fake_symbol = true))
+            memberComments.remove(it.fakeSymbol)
         }
         sb.appendLine("#endif")
 
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            memberComments.remove(it.symbol)
         }
         typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.append("    ").appendLine(it.genFuncString())
+            sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            memberComments.remove(it.symbol)
         }
         if (sb.equals("public:"))
             return ""
@@ -140,11 +149,13 @@ class ClassType(
             sb.appendLine("protected:")
         typeData.protectedTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
+                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            memberComments.remove(it.symbol)
         }
         typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
+                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            memberComments.remove(it.symbol)
         }
         if (sb.equals("protected:") || sb.equals("//protected:"))
             return ""
@@ -166,11 +177,13 @@ class ClassType(
             sb.appendLine("private:")
         typeData.privateTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
+                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            memberComments.remove(it.symbol)
         }
         typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.append("    ").appendLine(it.genFuncString())
+                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            memberComments.remove(it.symbol)
         }
         if (sb.equals("private:") || sb.equals("//private:"))
             return ""

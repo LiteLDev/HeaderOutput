@@ -25,6 +25,13 @@ fun String.substring(startStr: String = "", endStr: String = ""): String {
     return str.substring(0, end)
 }
 
+fun StringBuilder.appendSpace(count: Int): StringBuilder {
+    for (i in 0 until count) {
+        this.append(" ")
+    }
+    return this
+}
+
 fun isNameSpace(typeName: String, typeData: TypeData): Boolean {
     if (typeData.privateTypes != null
         || typeData.privateStaticTypes != null
