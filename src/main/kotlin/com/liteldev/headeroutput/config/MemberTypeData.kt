@@ -31,7 +31,7 @@ data class MemberTypeData(
         } else {
             ret.appendSpace(4).append("/**\n")
             if (isVirtual()) {
-                ret.appendSpace(4 + 1).append("* @note   Virtual function table index: $vIndex\n")
+                ret.appendSpace(4 + 1).append("* @vtable $vIndex\n")
             }
             ret.appendSpace(4 + 1).append("* @symbol $symbol\n")
             ret.appendSpace(4 + 1).append("*/\n")
