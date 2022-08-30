@@ -10,6 +10,9 @@ import com.liteldev.headeroutput.generate.StructGenerator
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
+import org.apache.commons.cli.DefaultParser
+import org.apache.commons.cli.Options
+import org.apache.commons.cli.ParseException
 import java.io.File
 
 
@@ -18,9 +21,10 @@ private val json = Json { explicitNulls = false }
 
 object HeaderOutput {
 
-    private const val JSON_PATH = "Z:/originalData.json"
-    const val OLD_PATH = "Z:/MC"
-    const val GENERATE_PATH = "Z:/headers"
+    private lateinit var JSON_PATH: String
+    lateinit var OLD_PATH: String
+    lateinit var GENERATE_PATH: String
+    lateinit var CONFIG_PATH: String
 
     private lateinit var originData: JsonObject
     private lateinit var funcListOfTypes: Map<String, TypeData>
@@ -35,6 +39,30 @@ object HeaderOutput {
 
     @JvmStatic
     fun main(args: Array<String>) {
+        try {
+            val options = Options()
+            options.addOption("c", "config", true, "The config file path(default ./config.json)")
+            options.addOption("o", "old", true, "The old header files path(default ./old)")
+            options.addOption("g", "generate", true, "The generate header files path(default ./header)")
+            val cmd = DefaultParser().parse(options, args)
+            CONFIG_PATH = if (cmd.hasOption("c")) cmd.getOptionValue("c") else "./config.json"
+            OLD_PATH = if (cmd.hasOption("o")) cmd.getOptionValue("o") else "./old"
+            GENERATE_PATH = if (cmd.hasOption("g")) cmd.getOptionValue("g") else "./header"
+            if (!File(CONFIG_PATH).isFile) {
+                println("Invalid config file path")
+                return
+            }
+            if (!File(OLD_PATH).isDirectory) {
+                println("Invalid old header files path")
+                return
+            }
+            if (!File(GENERATE_PATH).isDirectory) {
+                println("Invalid header generate path")
+                return
+            }
+        } catch (e: ParseException) {
+            println(e.localizedMessage)
+        }
         loadConfig()
         loadOriginData()
         loadIdentifier()
@@ -116,7 +144,7 @@ object HeaderOutput {
 
     private fun loadConfig() {
         println("Loading config...")
-        val configText = File("config.json").readText()
+        val configText = File(this.CONFIG_PATH).readText()
         generatorConfig = json.decodeFromString(configText)
     }
 
