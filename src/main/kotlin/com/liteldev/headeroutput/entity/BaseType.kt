@@ -27,8 +27,7 @@ abstract class BaseType(
     protected fun readComments(flag: String) {
         val regex = Regex("/\\*\\*\n([\\S\\s]+)\\*/\n$flag", RegexOption.MULTILINE)
         var origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
-        origin = origin.substring("", "#define BEFORE_EXTRA\n") +
-                origin.substring("#undef BEFORE_EXTRA\n", "\n#define AFTER_EXTRA") +
+        origin = origin.substring("#undef BEFORE_EXTRA\n", "\n#define AFTER_EXTRA") +
                 origin.substring("#undef AFTER_EXTRA\n")
         comment = regex.find(origin)?.groupValues?.get(0)?.substring("", "\n$flag") ?: ""
         val classBody = origin.substring("$flag $name ", "\n};") ?: ""

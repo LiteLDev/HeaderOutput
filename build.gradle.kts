@@ -1,11 +1,21 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
+    id("com.github.johnrengelman.shadow") version "6.0.0"
     java
+    distribution
+    application
 }
 
 group = "com.liteldev"
 version = "1.0-SNAPSHOT"
+val mainName = "com.liteldev.headeroutput.HeaderOutput"
+
+application {
+    mainClassName = mainName
+}
 
 repositories {
     mavenCentral()
@@ -25,4 +35,20 @@ dependencies {
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            mapOf("Main-Class" to mainName)
+        )
+    }
+}
+
+tasks.withType<ShadowJar> {
+    manifest {
+        attributes(
+            mapOf("Main-Class" to mainName)
+        )
+    }
 }

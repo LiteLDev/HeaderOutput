@@ -44,10 +44,12 @@ object HeaderOutput {
             options.addOption("c", "config", true, "The config file path(default ./config.json)")
             options.addOption("o", "old", true, "The old header files path(default ./old)")
             options.addOption("g", "generate", true, "The generate header files path(default ./header)")
+            options.addOption("j", "json", true, "The original data json file path(default ./header.json)")
             val cmd = DefaultParser().parse(options, args)
             CONFIG_PATH = if (cmd.hasOption("c")) cmd.getOptionValue("c") else "./config.json"
             OLD_PATH = if (cmd.hasOption("o")) cmd.getOptionValue("o") else "./old"
             GENERATE_PATH = if (cmd.hasOption("g")) cmd.getOptionValue("g") else "./header"
+            JSON_PATH = if (cmd.hasOption("j")) cmd.getOptionValue("j") else "./originalData.json"
             if (!File(CONFIG_PATH).isFile) {
                 println("Invalid config file path")
                 return
@@ -58,6 +60,10 @@ object HeaderOutput {
             }
             if (!File(GENERATE_PATH).isDirectory) {
                 println("Invalid header generate path")
+                return
+            }
+            if (!File(JSON_PATH).isFile) {
+                println("Invalid original data json file path")
                 return
             }
         } catch (e: ParseException) {
@@ -131,7 +137,7 @@ object HeaderOutput {
                 val dest = File(GENERATE_PATH, it.name)
                 if (dest.isFile)
                     println("Warning: ${dest.name} is already exist")
-                it.copyTo(File(GENERATE_PATH, it.name), true)
+                it.copyTo(dest, true)
             }
         }
 
