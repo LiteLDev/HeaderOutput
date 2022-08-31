@@ -1,9 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
-    id("com.github.johnrengelman.shadow") version "6.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     java
     distribution
     application
@@ -14,7 +12,7 @@ version = "1.0-SNAPSHOT"
 val mainName = "com.liteldev.headeroutput.HeaderOutput"
 
 application {
-    mainClassName = mainName
+    mainClass.set(mainName)
 }
 
 repositories {
@@ -24,7 +22,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
 
     // https://mvnrepository.com/artifact/commons-cli/commons-cli
     implementation("commons-cli:commons-cli:1.5.0")
@@ -33,22 +31,4 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
-}
-
-tasks.withType<Jar> {
-    manifest {
-        attributes(
-            mapOf("Main-Class" to mainName)
-        )
-    }
-}
-
-tasks.withType<ShadowJar> {
-    manifest {
-        attributes(
-            mapOf("Main-Class" to mainName)
-        )
-    }
-}
+tasks.build { dependsOn(tasks.named("shadowJar")) }
