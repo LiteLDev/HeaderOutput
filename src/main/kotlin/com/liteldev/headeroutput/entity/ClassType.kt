@@ -109,7 +109,7 @@ open class ClassType(
         var counter = 0
         typeData.virtual?.forEach {
             if (it.namespace.isEmpty() || it.namespace == name)
-                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, ""), vIndex = counter))
+                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it, counter), vIndex = counter))
             memberComments.remove(it.symbol)
             counter++
         }
@@ -122,11 +122,11 @@ open class ClassType(
         sb.appendLine("#endif")
 
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
             memberComments.remove(it.symbol)
         }
         typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+            sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
             memberComments.remove(it.symbol)
         }
         if (sb.equals("public:"))
@@ -149,12 +149,12 @@ open class ClassType(
             sb.appendLine("protected:")
         typeData.protectedTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
             memberComments.remove(it.symbol)
         }
         typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
             memberComments.remove(it.symbol)
         }
         if (sb.equals("protected:") || sb.equals("//protected:"))
@@ -177,12 +177,12 @@ open class ClassType(
             sb.appendLine("private:")
         typeData.privateTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
             memberComments.remove(it.symbol)
         }
         typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = memberComments.getOrDefault(it.symbol, "")))
+                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
             memberComments.remove(it.symbol)
         }
         if (sb.equals("private:") || sb.equals("//private:"))

@@ -32,7 +32,7 @@ class NamespaceType(
     fun genPublic(): String {
         val sb = StringBuilder()
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(namespace = true, comment = memberComments.getOrDefault(it.symbol, "")))
+            sb.appendLine(it.genFuncString(namespace = true, comment = this.getCommentOf(it)))
         }
         return sb.toString()
     }

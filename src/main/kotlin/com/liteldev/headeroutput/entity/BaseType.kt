@@ -30,7 +30,7 @@ abstract class BaseType(
         origin = origin.substring("#undef BEFORE_EXTRA\n", "\n#define AFTER_EXTRA") +
                 origin.substring("#undef AFTER_EXTRA\n")
         comment = regex.find(origin)?.groupValues?.get(0)?.substring("", "\n$flag") ?: ""
-        val classBody = origin.substring("$flag $name ", "\n};") ?: ""
+        val classBody = origin.substring("$flag $name ", "\n};")
         var inComment = false
         var lastComment = ""
         var symbol = ""
@@ -55,6 +55,16 @@ abstract class BaseType(
         }
     }
 
+    fun getCommentOf(member: MemberTypeData, vIndex: Int? = null): String {
+        val symbol =
+            if (member.isUnknownFunction() && vIndex != null)
+                "__unk_vfn_${vIndex}"
+            else if (member.isVirtual() && member.isDestructor() && member.symbol.isEmpty())
+                "__unk_destructor_${vIndex}"
+            else member.symbol
+        return this.memberComments[symbol] ?: ""
+    }
+
     private fun readIncludeClassFromMembers(list: List<MemberTypeData>): Set<String> {
         val retList = mutableSetOf<String>()
         list.forEach { memberType ->
@@ -65,7 +75,7 @@ abstract class BaseType(
                     }
                 }
             }
-            Regex("(\\w+)::").findAll(memberType.valType?.Name ?: "").forEach {
+            Regex("(\\w+)::").findAll(memberType.valType.Name ?: "").forEach {
                 retList.add(it.groupValues[1])
             }
         }
