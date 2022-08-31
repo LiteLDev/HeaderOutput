@@ -11,6 +11,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import org.apache.commons.cli.DefaultParser
+import org.apache.commons.cli.HelpFormatter
 import org.apache.commons.cli.Options
 import org.apache.commons.cli.ParseException
 import java.io.File
@@ -45,25 +46,35 @@ object HeaderOutput {
             options.addOption("o", "old", true, "The old header files path(default ./old)")
             options.addOption("g", "generate", true, "The generate header files path(default ./header)")
             options.addOption("j", "json", true, "The original data json file path(default ./header.json)")
+            options.addOption("h", "help", false, "Print help")
             val cmd = DefaultParser().parse(options, args)
             CONFIG_PATH = if (cmd.hasOption("c")) cmd.getOptionValue("c") else "./config.json"
             OLD_PATH = if (cmd.hasOption("o")) cmd.getOptionValue("o") else "./old"
             GENERATE_PATH = if (cmd.hasOption("g")) cmd.getOptionValue("g") else "./header"
             JSON_PATH = if (cmd.hasOption("j")) cmd.getOptionValue("j") else "./originalData.json"
+            val help = HelpFormatter()
+            if (cmd.hasOption("h")) {
+                help.printHelp("HeaderOutput", options)
+                return
+            }
             if (!File(CONFIG_PATH).isFile) {
                 println("Invalid config file path")
+                help.printHelp("HeaderOutput", options)
                 return
             }
             if (!File(OLD_PATH).isDirectory) {
                 println("Invalid old header files path")
+                help.printHelp("HeaderOutput", options)
                 return
             }
             if (!File(GENERATE_PATH).isDirectory) {
                 println("Invalid header generate path")
+                help.printHelp("HeaderOutput", options)
                 return
             }
             if (!File(JSON_PATH).isFile) {
                 println("Invalid original data json file path")
+                help.printHelp("HeaderOutput", options)
                 return
             }
         } catch (e: ParseException) {

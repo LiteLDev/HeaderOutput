@@ -33,6 +33,7 @@ data class MemberTypeData(
             if (isVirtual()) {
                 ret.appendSpace(4 + 1).append("* @vtable $vIndex\n")
             }
+            val symbol = if (this.isUnknownFunction()) "__unk_vfn_${vIndex}" else this.symbol
             ret.appendSpace(4 + 1).append("* @symbol $symbol\n")
             ret.appendSpace(4 + 1).append("*/\n")
         }
