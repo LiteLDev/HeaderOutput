@@ -20,14 +20,14 @@ object ClassGenerator {
 #include "${classType.getGlobalRelativePath()}"
 ${classType.getRelativeInclusions()}
 #define BEFORE_EXTRA
-${classType.beforeAddition}
+${classType.beforeExtra}
 #undef BEFORE_EXTRA
 
 ${run { classType.comment.ifEmpty { "/**\n * @brief MC class $name.\n *\n */" } }}
 class $name ${run { if (classType.parent != null) ": public ${classType.parent!!.name} " else "" }}{
 
 #define AFTER_EXTRA
-${classType.afterAddition}
+${classType.afterExtra}
 #undef AFTER_EXTRA
 """.trimIndent()
             )

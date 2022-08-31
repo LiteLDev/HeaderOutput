@@ -20,14 +20,14 @@ object NamespaceGenerator {
 #include "${namespaceType.getGlobalRelativePath()}"
 ${namespaceType.getRelativeInclusions()}
 #define BEFORE_EXTRA
-${namespaceType.beforeAddition}
+${namespaceType.beforeExtra}
 #undef BEFORE_EXTRA
 
 ${run { namespaceType.comment.ifEmpty { "/**\n * @brief MC namespace $name.\n *\n */" } }}
 namespace $name {
 
 #define AFTER_EXTRA
-${namespaceType.afterAddition}
+${namespaceType.afterExtra}
 #undef AFTER_EXTRA
 ${namespaceType.genPublic()}
 };

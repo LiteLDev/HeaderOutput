@@ -26,10 +26,10 @@ open class ClassType(
 //        afterAddition = origin.substring("#else\n", "\n#endif")
 //        return
         val origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
-        beforeAddition = origin.substring(
+        beforeExtra = origin.substring(
             "#define BEFORE_EXTRA\n", "\n#undef BEFORE_EXTRA"
         )
-        afterAddition = origin.substring(
+        afterExtra = origin.substring(
             "#define AFTER_EXTRA\n", "\n#undef AFTER_EXTRA"
         )
         readComments()

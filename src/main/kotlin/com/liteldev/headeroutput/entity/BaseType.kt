@@ -12,8 +12,8 @@ abstract class BaseType(
     var name: String,
     var typeData: TypeData,
     val includeList: MutableSet<BaseType> = mutableSetOf(),
-    var beforeAddition: String = "",
-    var afterAddition: String = "",
+    var beforeExtra: String = "",
+    var afterExtra: String = "",
     var comment: String = "",
     var memberComments: MutableMap<String, String> = mutableMapOf(),
 ) {
@@ -41,7 +41,7 @@ abstract class BaseType(
             if (inComment) {
                 lastComment += it + "\n"
                 if (it.contains("@symbol")) {
-                    symbol = it.substring("@symbol ", "").trim();
+                    symbol = it.substring("@symbol ", "").trim()
                 }
             }
             if (it.contains("*/")) {

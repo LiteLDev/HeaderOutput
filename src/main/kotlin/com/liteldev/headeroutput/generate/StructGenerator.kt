@@ -20,14 +20,14 @@ object StructGenerator {
 #include "${structType.getGlobalRelativePath()}"
 ${structType.getRelativeInclusions()}
 #define BEFORE_EXTRA
-${structType.beforeAddition}
+${structType.beforeExtra}
 #undef BEFORE_EXTRA
 
 ${run { structType.comment.ifEmpty { "/**\n * @brief MC structure $name.\n *\n */" } }}
 struct $name {
 
 #define AFTER_EXTRA
-${structType.afterAddition}
+${structType.afterExtra}
 #undef AFTER_EXTRA
 """.trimIndent()
             )
