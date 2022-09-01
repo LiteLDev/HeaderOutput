@@ -7,7 +7,7 @@ fun String.relativePath(path: String) = Paths.get(this).relativize(Paths.get(pat
 
 fun String.parent() = "$this/.."
 
-fun String.substring(startStr: String = "", endStr: String = ""): String {
+fun String.substring(startStr: String, endStr: String): String {
     return substringAfter(startStr, "").substringBefore(endStr, "")
 }
 

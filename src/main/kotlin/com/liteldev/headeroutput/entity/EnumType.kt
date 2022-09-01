@@ -49,7 +49,8 @@ enum class StorageClassType(override val value: Int) : IntEnumBase {
     Virtual(1),
     None(2);
 
-    companion object : IntEnumSerializer<StorageClassType>(StorageClassType::class.simpleName!!, StorageClassType::class)
+    companion object :
+        IntEnumSerializer<StorageClassType>(StorageClassType::class.simpleName!!, StorageClassType::class)
 }
 
 @Suppress("unused")

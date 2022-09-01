@@ -106,6 +106,43 @@ data class MemberTypeData(
     }
 
     fun isVirtual() = storageClass == StorageClassType.Virtual
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as MemberTypeData
+
+        if (storageClass != other.storageClass) return false
+        if (accessType != other.accessType) return false
+        if (symbolType != other.symbolType) return false
+        if (valType != other.valType) return false
+        if (namespace != other.namespace) return false
+        if (name != other.name) return false
+        if (params != other.params) return false
+        if (flags != other.flags) return false
+        if (rva != other.rva) return false
+        if (symbol != other.symbol) return false
+        if (fakeSymbol != other.fakeSymbol) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = storageClass.value
+        result = 31 * result + accessType.value
+        result = 31 * result + symbolType.value
+        result = 31 * result + valType.hashCode()
+        result = 31 * result + namespace.hashCode()
+        result = 31 * result + name.hashCode()
+        params?.forEach{
+            result = 31 * result + it.hashCode()
+        }
+        result = 31 * result + flags
+        result = 31 * result + rva.hashCode()
+        result = 31 * result + symbol.hashCode()
+        result = 31 * result + (fakeSymbol?.hashCode() ?: 0)
+        return result
+    }
 
     companion object {
         //[0] const
@@ -116,4 +153,6 @@ data class MemberTypeData(
         const val PURE_CALL = 1 shl 2
         const val START_BLANK_SPACE = 4
     }
+
+
 }

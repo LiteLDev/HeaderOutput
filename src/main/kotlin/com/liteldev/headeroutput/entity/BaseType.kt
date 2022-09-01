@@ -28,7 +28,7 @@ abstract class BaseType(
         val regex = Regex("/\\*\\*\n([\\S\\s]+)\\*/\n$flag", RegexOption.MULTILINE)
         var origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
         origin = origin.substring("#undef BEFORE_EXTRA\n", "\n#define AFTER_EXTRA") +
-                origin.substring("#undef AFTER_EXTRA\n")
+                origin.substringAfter("#undef AFTER_EXTRA\n")
         comment = regex.find(origin)?.groupValues?.get(0)?.substring("", "\n$flag") ?: ""
         val classBody = origin.substring("$flag $name ", "\n};")
         var inComment = false
@@ -37,6 +37,15 @@ abstract class BaseType(
         classBody.lines().forEach {
             when {
                 it.contains("/*") -> inComment = true
+                it.contains("*/") -> {
+                    inComment = false
+                    hash?.let { h ->
+                        memberComments[h] = comment.toString()
+                        hash = null
+                    }
+                    comment.clear()
+                }
+
                 inComment -> {
                     when {
                         it.contains("@hash") -> hash = it.substringAfter("@hash ", "").trim().toIntOrNull()
@@ -44,16 +53,6 @@ abstract class BaseType(
                         it.contains("@symbol") -> {}
                         else -> comment.append(it).append("\n")
                     }
-                }
-
-                it.contains("*/") -> {
-                    inComment = false
-                    @Suppress("KotlinConstantConditions")
-                    hash?.let { h ->
-                        memberComments[h] = comment.toString()
-                        hash = null
-                    }
-                    comment.clear()
                 }
             }
         }
