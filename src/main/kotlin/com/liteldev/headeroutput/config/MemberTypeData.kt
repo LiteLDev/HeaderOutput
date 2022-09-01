@@ -33,13 +33,8 @@ data class MemberTypeData(
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
         if (comment.isNotEmpty()) ret.append(comment)
         if (isVirtual() && !use_fake_symbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
-        val symbol =
-            if (this.isUnknownFunction())
-                "__unk_vfn_${vIndex}"
-            else if (this.isVirtual() && this.isDestructor())
-                "__unk_destructor_${vIndex}"
-            else this.symbol
-        ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
+        if (symbol.isNotEmpty())
+            ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
         ret.appendSpace(START_BLANK_SPACE + 1).append("* @hash   ${hashCode()}\n")
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
