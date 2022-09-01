@@ -32,7 +32,7 @@ data class MemberTypeData(
         var ret = StringBuilder()
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
         if (comment.isNotEmpty()) ret.append(comment)
-        if (isVirtual() && !use_fake_symbol) ret.appendSpace(4 + 1).append("* @vtbl $vIndex\n")
+        if (isVirtual() && !use_fake_symbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
         val symbol =
             if (this.isUnknownFunction())
                 "__unk_vfn_${vIndex}"
@@ -40,7 +40,7 @@ data class MemberTypeData(
                 "__unk_destructor_${vIndex}"
             else this.symbol
         ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
-        ret.appendSpace(START_BLANK_SPACE + 1).append("* @hash ${hashCode()}\n")
+        ret.appendSpace(START_BLANK_SPACE + 1).append("* @hash   ${hashCode()}\n")
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
         ret.appendSpace(START_BLANK_SPACE)

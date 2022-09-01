@@ -113,16 +113,18 @@ open class ClassType(
             counter++
         }
 
-        sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
-        typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
-            sb.appendLine(
-                it.genFuncString(
-                    comment = getCommentOf(it),
-                    use_fake_symbol = true
+        if (typeData.virtualUnordered?.isNotEmpty() == true) {
+            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
+            typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
+                sb.appendLine(
+                    it.genFuncString(
+                        comment = getCommentOf(it),
+                        use_fake_symbol = true
+                    )
                 )
-            )
+            }
+            sb.appendLine("#endif")
         }
-        sb.appendLine("#endif")
 
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
             sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
