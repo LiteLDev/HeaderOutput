@@ -132,7 +132,7 @@ open class ClassType(
         typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
             sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
         }
-        if (sb.equals("public:"))
+        if (sb.equals("public:\n"))
             return ""
         sb.trim()
         sb.appendLine()
@@ -158,7 +158,7 @@ open class ClassType(
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
         }
-        if (sb.equals("protected:") || sb.equals("//protected:"))
+        if (sb.equals("protected:\n") || sb.equals("//protected:\n"))
             return ""
         sb.trim()
         sb.appendLine()
@@ -184,7 +184,7 @@ open class ClassType(
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
                 sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
         }
-        if (sb.equals("private:") || sb.equals("//private:"))
+        if (sb.equals("private:\n") || sb.equals("//private:\n"))
             return ""
         sb.trim()
         sb.appendLine()
