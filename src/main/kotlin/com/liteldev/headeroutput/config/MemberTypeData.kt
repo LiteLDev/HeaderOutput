@@ -40,7 +40,7 @@ data class MemberTypeData(
 
         ret.appendSpace(START_BLANK_SPACE)
         if (isStaticGlobalVariable()) {
-            ret = StringBuilder("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
+            ret.append("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
         } else {
             if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.Name}"))
                 valType.Name = ""
