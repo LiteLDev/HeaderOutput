@@ -15,7 +15,7 @@ abstract class BaseType(
     var beforeExtra: String = "",
     var afterExtra: String = "",
     var comment: String = "",
-    var memberComments: MutableMap<String, String> = mutableMapOf(),
+    var memberComments: MutableMap<Int, String> = mutableMapOf(),
 ) {
 
     abstract fun getPath(): String
@@ -32,37 +32,35 @@ abstract class BaseType(
         comment = regex.find(origin)?.groupValues?.get(0)?.substring("", "\n$flag") ?: ""
         val classBody = origin.substring("$flag $name ", "\n};")
         var inComment = false
-        var lastComment = ""
-        var symbol = ""
-        classBody.split("\n").forEach {
-            if (it.contains("/**")) {
-                inComment = true
-            }
-            if (inComment) {
-                lastComment += it + "\n"
-                if (it.contains("@symbol")) {
-                    symbol = it.substring("@symbol ", "").trim()
+        val comment = StringBuilder()
+        var hash: Int? = null
+        classBody.lines().forEach {
+            when {
+                it.contains("/*") -> inComment = true
+                inComment -> {
+                    when {
+                        it.contains("@hash") -> hash = it.substringAfter("@hash ", "").trim().toIntOrNull()
+                        it.contains("@vtbl") -> {}
+                        it.contains("@symbol") -> {}
+                        else -> comment.append(it).append("\n")
+                    }
                 }
-            }
-            if (it.contains("*/")) {
-                inComment = false
-                if (symbol.isNotEmpty()) {
-                    memberComments[symbol] = lastComment
-                    symbol = ""
-                    lastComment = ""
+
+                it.contains("*/") -> {
+                    inComment = false
+                    @Suppress("KotlinConstantConditions")
+                    hash?.let { h ->
+                        memberComments[h] = comment.toString()
+                        hash = null
+                    }
+                    comment.clear()
                 }
             }
         }
     }
 
-    fun getCommentOf(member: MemberTypeData, vIndex: Int? = null): String {
-        val symbol =
-            if (member.isUnknownFunction() && vIndex != null)
-                "__unk_vfn_${vIndex}"
-            else if (member.isVirtual() && member.isDestructor() && member.symbol.isEmpty())
-                "__unk_destructor_${vIndex}"
-            else member.symbol
-        return this.memberComments[symbol] ?: ""
+    fun getCommentOf(member: MemberTypeData): String {
+        return this.memberComments[member.hashCode()] ?: ""
     }
 
     private fun readIncludeClassFromMembers(list: List<MemberTypeData>): Set<String> {

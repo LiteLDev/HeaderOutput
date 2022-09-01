@@ -144,8 +144,12 @@ object HeaderOutput {
             return false
         }
         if (!File(GENERATE_PATH).isDirectory) {
-            println("Invalid header generate path")
-            return false
+            try {
+                File(GENERATE_PATH).mkdirs()
+            } catch (e: Exception) {
+                println("Fail to create generate header files path")
+                return false
+            }
         }
         if (!File(JSON_PATH).isFile) {
             println("Invalid original data json file path")

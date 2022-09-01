@@ -23,26 +23,26 @@ data class MemberTypeData(
     @SerialName("fake_symbol") val fakeSymbol: String?, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
 ) {
 
-
-    fun genFuncString(namespace: Boolean = false, use_fake_symbol: Boolean = false, comment: String = "", vIndex: Int = -1): String {
+    fun genFuncString(
+        namespace: Boolean = false,
+        use_fake_symbol: Boolean = false,
+        comment: String = "",
+        vIndex: Int = -1
+    ): String {
         var ret = StringBuilder()
-        if (comment.isNotEmpty()) {
-            ret.append(comment)
-        } else {
-            ret.appendSpace(4).append("/**\n")
-            if (isVirtual()) {
-                ret.appendSpace(4 + 1).append("* @vtable $vIndex\n")
-            }
-            val symbol =
-                if (this.isUnknownFunction())
-                    "__unk_vfn_${vIndex}"
-                else if (this.isVirtual() && this.isDestructor())
-                    "__unk_destructor_${vIndex}"
-                else this.symbol
-            ret.appendSpace(4 + 1).append("* @symbol $symbol\n")
-            ret.appendSpace(4 + 1).append("*/\n")
-        }
-        ret.appendSpace(4)
+        ret.appendSpace(START_BLANK_SPACE).append("/**\n")
+        if (comment.isNotEmpty()) ret.append(comment)
+        if (isVirtual() && !use_fake_symbol) ret.appendSpace(4 + 1).append("* @vtbl $vIndex\n")
+        val symbol =
+            if (this.isUnknownFunction())
+                "__unk_vfn_${vIndex}"
+            else if (this.isVirtual() && this.isDestructor())
+                "__unk_destructor_${vIndex}"
+            else this.symbol
+        ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
+        ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
+
+        ret.appendSpace(START_BLANK_SPACE)
         if (isStaticGlobalVariable()) {
             ret = StringBuilder("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
         } else {
@@ -113,5 +113,6 @@ data class MemberTypeData(
         const val CONST = 1 shl 0
         const val PTR_CALL = 1 shl 1
         const val PURE_CALL = 1 shl 2
+        const val START_BLANK_SPACE = 4
     }
 }
