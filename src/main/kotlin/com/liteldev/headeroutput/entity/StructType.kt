@@ -59,6 +59,7 @@ class StructType(
             }
             sb.appendLine("#endif")
         }
+        sb.appendLine()
         return sb.toString()
     }
 
