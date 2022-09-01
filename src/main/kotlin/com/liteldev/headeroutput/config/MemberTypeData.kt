@@ -40,6 +40,7 @@ data class MemberTypeData(
                 "__unk_destructor_${vIndex}"
             else this.symbol
         ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
+        ret.appendSpace(START_BLANK_SPACE + 1).append("* @hash ${hashCode()}\n")
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
         ret.appendSpace(START_BLANK_SPACE)
