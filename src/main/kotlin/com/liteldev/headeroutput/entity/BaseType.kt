@@ -15,7 +15,7 @@ abstract class BaseType(
     var beforeExtra: String = "",
     var afterExtra: String = "",
     var comment: String = "",
-    var memberComments: MutableMap<Int, String> = mutableMapOf(),
+    var memberComments: MutableMap<String, String> = mutableMapOf(),
 ) {
 
     abstract fun getPath(): String
@@ -33,24 +33,23 @@ abstract class BaseType(
         val classBody = origin.substring("$flag $name ", "\n};")
         var inComment = false
         val comment = StringBuilder()
-        var hash: Int? = null
+        var symbol: String? = null
         classBody.lines().forEach {
             when {
                 it.contains("/*") -> inComment = true
                 it.contains("*/") -> {
                     inComment = false
-                    hash?.let { h ->
-                        memberComments[h] = comment.toString()
-                        hash = null
+                    symbol?.let { s ->
+                        memberComments[s] = comment.toString()
+                        symbol = null
                     }
                     comment.clear()
                 }
 
                 inComment -> {
                     when {
-                        it.contains("@hash") -> hash = it.substringAfter("@hash ", "").trim().toIntOrNull()
+                        it.contains("@symbol") -> symbol = it.substringAfter("@symbol ", "").trim()
                         it.contains("@vftbl") -> {}
-                        it.contains("@symbol") -> {}
                         else -> comment.append(it).append("\n")
                     }
                 }
@@ -59,7 +58,8 @@ abstract class BaseType(
     }
 
     fun getCommentOf(member: MemberTypeData): String {
-        return this.memberComments[member.hashCode()] ?: ""
+        val symbol = member.symbol
+        return this.memberComments[symbol] ?: ""
     }
 
     private fun readIncludeClassFromMembers(list: List<MemberTypeData>): Set<String> {

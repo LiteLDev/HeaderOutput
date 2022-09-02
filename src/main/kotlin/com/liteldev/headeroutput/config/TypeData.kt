@@ -14,6 +14,6 @@ data class TypeData(
     @SerialName("public") val publicTypes: List<MemberTypeData>?,
     @SerialName("public.static") val publicStaticTypes: List<MemberTypeData>?,
     val virtual: List<MemberTypeData>?,
-    @SerialName("virtual.unordered") val virtualUnordered: List<MemberTypeData>?,
+    @SerialName("virtual.unordered") val virtualUnordered: MutableList<MemberTypeData>?,
     @SerialName("vtbl_entry") val vtblEntry: List<String>?
 )

@@ -11,6 +11,16 @@ open class ClassType(
     var parent: ClassType? = null,
     private val children: MutableMap<String, ClassType> = mutableMapOf(),
 ) : BaseType(name, typeData) {
+
+    // TODO: Fix in header generator
+    init {
+        typeData.virtual?.forEach { virtual ->
+            typeData.virtualUnordered?.removeIf { unordered ->
+                virtual.symbol == unordered.symbol
+            }
+        }
+    }
+
     override fun getPath(): String {
         return "./$name.hpp"
         /*if (parent == null) {

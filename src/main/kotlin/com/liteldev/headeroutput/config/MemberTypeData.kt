@@ -29,13 +29,19 @@ data class MemberTypeData(
         comment: String = "",
         vIndex: Int = -1
     ): String {
-        var ret = StringBuilder()
+        val symbol =
+            if (this.isUnknownFunction())
+                "__unk_vfn_${vIndex}"
+            else if (this.isVirtual() && this.isDestructor())
+                "__unk_destructor_${vIndex}"
+            else this.symbol
+
+        val ret = StringBuilder()
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
         if (comment.isNotEmpty()) ret.append(comment)
         if (isVirtual() && !use_fake_symbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
         if (symbol.isNotEmpty())
             ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
-        ret.appendSpace(START_BLANK_SPACE + 1).append("* @hash   ${hashCode()}\n")
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
         ret.appendSpace(START_BLANK_SPACE)
@@ -101,43 +107,6 @@ data class MemberTypeData(
     }
 
     fun isVirtual() = storageClass == StorageClassType.Virtual
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as MemberTypeData
-
-        if (storageClass != other.storageClass) return false
-        if (accessType != other.accessType) return false
-        if (symbolType != other.symbolType) return false
-        if (valType != other.valType) return false
-        if (namespace != other.namespace) return false
-        if (name != other.name) return false
-        if (params != other.params) return false
-        if (flags != other.flags) return false
-        if (rva != other.rva) return false
-        if (symbol != other.symbol) return false
-        if (fakeSymbol != other.fakeSymbol) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = storageClass.value
-        result = 31 * result + accessType.value
-        result = 31 * result + symbolType.value
-        result = 31 * result + valType.hashCode()
-        result = 31 * result + namespace.hashCode()
-        result = 31 * result + name.hashCode()
-        params?.forEach{
-            result = 31 * result + it.hashCode()
-        }
-        result = 31 * result + flags
-        result = 31 * result + rva.hashCode()
-        result = 31 * result + symbol.hashCode()
-        result = 31 * result + (fakeSymbol?.hashCode() ?: 0)
-        return result
-    }
 
     companion object {
         //[0] const
@@ -146,6 +115,7 @@ data class MemberTypeData(
         const val CONST = 1 shl 0
         const val PTR_CALL = 1 shl 1
         const val PURE_CALL = 1 shl 2
+
         const val START_BLANK_SPACE = 4
     }
 
