@@ -23,7 +23,6 @@ ${classType.getRelativeInclusions()}
 ${classType.beforeExtra}
 #undef BEFORE_EXTRA
 
-${run { classType.comment.ifEmpty { "/**\n * @brief MC class $name.\n *\n */" } }}
 class $name ${run { if (classType.parent != null) ": public ${classType.parent!!.name} " else "" }}{
 
 #define AFTER_EXTRA
