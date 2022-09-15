@@ -51,7 +51,8 @@ object HeaderOutput {
                 isNameSpace(typeName, type) -> {
                     namespaceMap[typeName] = NamespaceType(typeName, type).also {
                         runCatching {
-                            it.readOldAddition()
+                            it.readOldExtra()
+                            it.readComments("namespace")
                         }.onFailure {
                             println("Warning: $typeName not found in old")
                         }
@@ -61,7 +62,8 @@ object HeaderOutput {
                 realStructNameList.contains(typeName) -> {
                     structMap[typeName] = StructType(typeName, type).also {
                         runCatching {
-                            it.readOldAddition()
+                            it.readOldExtra()
+                            it.readComments("struct")
                         }.onFailure {
                             println("Warning: $typeName not found in old")
                         }
@@ -71,7 +73,8 @@ object HeaderOutput {
                 else/*realClassNameList.contains(typeName)*/ -> {
                     classMap[typeName] = ClassType(typeName, type).also {
                         runCatching {
-                            it.readOldAddition()
+                            it.readOldExtra()
+                            it.readComments("class")
                         }.onFailure {
                             println("Warning: $typeName not found in old")
                         }

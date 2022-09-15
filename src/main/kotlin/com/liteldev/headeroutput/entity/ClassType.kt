@@ -3,8 +3,6 @@ package com.liteldev.headeroutput.entity
 import com.liteldev.headeroutput.HeaderOutput
 import com.liteldev.headeroutput.config.MemberTypeData
 import com.liteldev.headeroutput.config.TypeData
-import com.liteldev.headeroutput.substring
-import java.io.File
 
 open class ClassType(
     name: String, typeData: TypeData,
@@ -28,25 +26,6 @@ open class ClassType(
         } else {
             parent!!.getPath() + "/" + name
         }*/
-    }
-
-    override fun readOldAddition() {
-//        val origin = File(OLD_PATH, "./${name}API.hpp").readText().replace("\r\n", "\n")
-//        beforeAddition = origin.substring("#ifdef EXTRA_INCLUDE_PART_${name.uppercase()}\n", "\n#else")
-//        afterAddition = origin.substring("#else\n", "\n#endif")
-//        return
-        val origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
-        beforeExtra = origin.substring(
-            "#define BEFORE_EXTRA\n", "\n#undef BEFORE_EXTRA"
-        )
-        afterExtra = origin.substring(
-            "#define AFTER_EXTRA\n", "\n#undef AFTER_EXTRA"
-        )
-        readComments()
-    }
-
-    override fun readComments() {
-        readComments("class")
     }
 
     override fun hashCode(): Int {

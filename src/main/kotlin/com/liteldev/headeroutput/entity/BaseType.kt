@@ -15,16 +15,24 @@ abstract class BaseType(
     var beforeExtra: String = "",
     var afterExtra: String = "",
     var comment: String = "",
-    var memberComments: MutableMap<String, String> = mutableMapOf(),
+    private var memberComments: MutableMap<String, String> = mutableMapOf(),
 ) {
 
     abstract fun getPath(): String
 
-    abstract fun readOldAddition()
+    fun readOldExtra() {
+        val origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
+        beforeExtra = origin.substring(
+            "#define BEFORE_EXTRA\n",
+            "\n#undef BEFORE_EXTRA"
+        )
+        afterExtra = origin.substring(
+            "#define AFTER_EXTRA\n",
+            "\n#undef AFTER_EXTRA"
+        )
+    }
 
-    abstract fun readComments()
-
-    protected fun readComments(flag: String) {
+    fun readComments(flag: String) {
         val regex = Regex("/\\*\\*\n([\\S\\s]+)\\*/\n$flag", RegexOption.MULTILINE)
         var origin = File(HeaderOutput.OLD_PATH, getPath()).readText().replace("\r\n", "\n")
         origin = origin.substring("#undef BEFORE_EXTRA\n", "\n#define AFTER_EXTRA") +
