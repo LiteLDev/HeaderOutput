@@ -108,7 +108,7 @@ open class ClassType(
                 sb.appendLine(
                     it.genFuncString(
                         comment = getCommentOf(it),
-                        use_fake_symbol = true
+                        useFakeSymbol = true
                     )
                 )
             }

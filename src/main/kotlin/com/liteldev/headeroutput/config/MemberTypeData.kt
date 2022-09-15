@@ -25,7 +25,7 @@ data class MemberTypeData(
 
     fun genFuncString(
         namespace: Boolean = false,
-        use_fake_symbol: Boolean = false,
+        useFakeSymbol: Boolean = false,
         comment: String = "",
         vIndex: Int = -1
     ): String {
@@ -39,7 +39,7 @@ data class MemberTypeData(
         val ret = StringBuilder()
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
         if (comment.isNotEmpty()) ret.append(comment)
-        if (isVirtual() && !use_fake_symbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
+        if (isVirtual() && !useFakeSymbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
         if (symbol.isNotEmpty())
             ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
@@ -56,7 +56,7 @@ data class MemberTypeData(
 
             ret.append(run {
                 if (isVirtual())
-                    if (use_fake_symbol) "MCVAPI "
+                    if (useFakeSymbol) "MCVAPI "
                     else "virtual "
                 else
                     "MCAPI "
