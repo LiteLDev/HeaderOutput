@@ -11,7 +11,7 @@ object ClassGenerator {
             hpp.writeText(
                 """
 /**
- * @file  MC/$name.hpp
+ * @file  $name.hpp
  *
  */
 #pragma once

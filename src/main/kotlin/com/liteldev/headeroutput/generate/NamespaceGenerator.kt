@@ -11,7 +11,7 @@ object NamespaceGenerator {
             file.writeText(
                 """
 /**
- * @file  MC/$name.hpp
+ * @file  $name.hpp
  *
  */
 #pragma once
