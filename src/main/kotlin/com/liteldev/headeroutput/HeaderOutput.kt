@@ -107,7 +107,7 @@ object HeaderOutput {
         StructGenerator.generate()
         NamespaceGenerator.generate()
 
-        File(OLD_PATH).listFiles()?.forEach {
+        File(OLD_PATH).listFiles()?.filter { it.isFile }?.forEach {
             val origin = it.readText()
             if (!origin.contains("#define AUTO_GENERATED")) {
                 val dest = File(GENERATE_PATH, it.name)

@@ -16,7 +16,7 @@ object StructGenerator {
  */
 #pragma once
 #define AUTO_GENERATED
-#include "${structType.getGlobalRelativePath()}"
+#include "${structType.getGlobalHeaderPath()}"
 ${structType.getRelativeInclusions()}
 #define BEFORE_EXTRA
 ${structType.beforeExtra}

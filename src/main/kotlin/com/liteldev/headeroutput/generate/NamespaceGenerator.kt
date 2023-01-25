@@ -16,7 +16,7 @@ object NamespaceGenerator {
  */
 #pragma once
 #define AUTO_GENERATED
-#include "${namespaceType.getGlobalRelativePath()}"
+#include "${namespaceType.getGlobalHeaderPath()}"
 ${namespaceType.getRelativeInclusions()}
 #define BEFORE_EXTRA
 ${namespaceType.beforeExtra}

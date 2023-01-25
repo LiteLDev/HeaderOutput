@@ -106,7 +106,7 @@ abstract class BaseType(
     }.map { HeaderOutput.classMap[it] ?: HeaderOutput.structMap[it] ?: HeaderOutput.namespaceMap[it]!! }
         .let(includeList::addAll)
 
-    fun getGlobalRelativePath() = getPath().parent().relativePath("../Global.h")
+    fun getGlobalHeaderPath() = "llapi/Global.h"
 
     fun getRelativeInclusions(): String {
         val include = StringBuilder()

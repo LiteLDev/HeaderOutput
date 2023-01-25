@@ -16,7 +16,7 @@ object ClassGenerator {
  */
 #pragma once
 #define AUTO_GENERATED
-#include "${classType.getGlobalRelativePath()}"
+#include "${classType.getGlobalHeaderPath()}"
 ${classType.getRelativeInclusions()}
 #define BEFORE_EXTRA
 ${classType.beforeExtra}

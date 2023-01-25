@@ -40,8 +40,9 @@ data class MemberTypeData(
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
         if (comment.isNotEmpty()) ret.append(comment)
         if (isVirtual() && !useFakeSymbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
-        if (symbol.isNotEmpty())
-            ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol $symbol\n")
+        if (symbol.isNotEmpty()) {
+            ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol  ${symbol.replace("@", "\\@")}\n")
+        }
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
         ret.appendSpace(START_BLANK_SPACE)
