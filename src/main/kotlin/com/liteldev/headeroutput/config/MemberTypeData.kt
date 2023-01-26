@@ -47,7 +47,7 @@ data class MemberTypeData(
 
         ret.appendSpace(START_BLANK_SPACE)
         if (isStaticGlobalVariable()) {
-            ret.append("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name} $name;")
+            ret.append("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name?.replace("enum ", "enum class ")} $name;")
         } else {
             if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.Name}"))
                 valType.Name = ""
@@ -63,8 +63,8 @@ data class MemberTypeData(
                     "MCAPI "
             })
             if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
-            if (valType.Name != "") ret.append("${valType.Name} ")
-            ret.append("$name($paramsString)")
+            if (valType.Name != "") ret.append("${valType.Name?.replace("enum ", "enum class ")} ")
+            ret.append("$name(${paramsString.replace("enum ", "enum class ")})")
             if (isConst()) ret.append(" const")
             if (isPureCall()) ret.append(" = 0")
             ret.append(";")
