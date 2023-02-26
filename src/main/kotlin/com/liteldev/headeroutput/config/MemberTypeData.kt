@@ -38,9 +38,9 @@ data class MemberTypeData(
 
         val ret = StringBuilder()
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
-        if (isVirtual() && !useFakeSymbol) ret.appendSpace(START_BLANK_SPACE + 1).append("* @vftbl  $vIndex\n")
+        if (isVirtual() && !useFakeSymbol) ret.appendSpace(START_BLANK_SPACE + 1).append("* @vftbl $vIndex\n")
         if (symbol.isNotEmpty()) {
-            ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol  ${symbol.replace("@", "\\@")}\n")
+            ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol ${symbol.replace("@", "\\@")}\n")
         }
         if (comment.isNotEmpty()) ret.appendSpace(START_BLANK_SPACE + 1).append("*\n").append(comment)
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
