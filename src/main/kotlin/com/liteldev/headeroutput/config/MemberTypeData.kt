@@ -38,16 +38,23 @@ data class MemberTypeData(
 
         val ret = StringBuilder()
         ret.appendSpace(START_BLANK_SPACE).append("/**\n")
-        if (comment.isNotEmpty()) ret.append(comment)
-        if (isVirtual() && !useFakeSymbol) ret.appendSpace(4 + 1).append("* @vftbl  $vIndex\n")
+        if (isVirtual() && !useFakeSymbol) ret.appendSpace(START_BLANK_SPACE + 1).append("* @vftbl  $vIndex\n")
         if (symbol.isNotEmpty()) {
             ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol  ${symbol.replace("@", "\\@")}\n")
         }
+        if (comment.isNotEmpty()) ret.appendSpace(START_BLANK_SPACE + 1).append("*\n").append(comment)
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
         ret.appendSpace(START_BLANK_SPACE)
         if (isStaticGlobalVariable()) {
-            ret.append("MCAPI ${if (!namespace) "static " else "extern "}${valType.Name?.replace("enum ", "enum class ")} $name;")
+            ret.append(
+                "MCAPI ${if (!namespace) "static " else "extern "}${
+                    valType.Name?.replace(
+                        "enum ",
+                        "enum class "
+                    )
+                } $name;"
+            )
         } else {
             if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.Name}"))
                 valType.Name = ""

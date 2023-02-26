@@ -56,8 +56,9 @@ abstract class BaseType(
 
                 inComment -> {
                     when {
-                        it.contains("@symbol") -> symbol = it.substringAfter("@symbol ", "").trim()
+                        it.contains("@symbol") -> symbol = it.substringAfter("@symbol ", "").trim().replace("\\@", "@")
                         it.contains("@vftbl") -> {}
+                        it.contains("@hash") -> {}
                         else -> comment.append(it).append("\n")
                     }
                 }

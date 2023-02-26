@@ -36,8 +36,7 @@ ${classType.afterExtra}
             hpp.appendText(classType.genPrivate())
             hpp.appendText(classType.genProtected(genFunc = false))
             hpp.appendText(classType.genPrivate(genFunc = false))
-            hpp.appendText("};")
-
+            hpp.appendText("};\n")
         }
     }
 }
