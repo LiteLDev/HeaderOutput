@@ -1,6 +1,6 @@
 package com.liteldev.headeroutput
 
-import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.config.origindata.TypeData
 import java.nio.file.Paths
 
 fun String.relativePath(path: String) = Paths.get(this).relativize(Paths.get(path)).toString().replace("\\", "/")

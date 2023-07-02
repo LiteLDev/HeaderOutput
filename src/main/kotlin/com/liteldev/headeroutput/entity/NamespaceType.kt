@@ -1,6 +1,6 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.config.origindata.TypeData
 
 class NamespaceType(
     name: String, typeData: TypeData

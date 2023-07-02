@@ -1,8 +1,8 @@
 package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.HeaderOutput
-import com.liteldev.headeroutput.config.MemberTypeData
-import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.config.origindata.MemberTypeData
+import com.liteldev.headeroutput.config.origindata.TypeData
 import com.liteldev.headeroutput.parent
 import com.liteldev.headeroutput.relativePath
 import com.liteldev.headeroutput.substring

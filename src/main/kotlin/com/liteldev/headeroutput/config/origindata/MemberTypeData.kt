@@ -1,4 +1,4 @@
-package com.liteldev.headeroutput.config
+package com.liteldev.headeroutput.config.origindata
 
 import com.liteldev.headeroutput.appendSpace
 import com.liteldev.headeroutput.entity.AccessType
