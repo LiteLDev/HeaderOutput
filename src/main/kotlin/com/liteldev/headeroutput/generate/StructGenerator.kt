@@ -1,40 +1,38 @@
 package com.liteldev.headeroutput.generate
 
-import com.liteldev.headeroutput.HeaderOutput
+import com.liteldev.headeroutput.config.GeneratorConfig
+import com.liteldev.headeroutput.entity.BaseType
+import com.liteldev.headeroutput.entity.StructType
 import java.io.File
 
-object StructGenerator {
+object StructGenerator : Generator {
 
-    fun generate() {
-        HeaderOutput.structMap.forEach { (name, structType) ->
-            val hpp = File(HeaderOutput.GENERATE_PATH, structType.getPath())
-            hpp.writeText(
-                """
+    override fun generate(type: BaseType) {
+        if (type !is StructType) {
+            println("StructGenerator: ${type.name} is not StructType")
+            return
+        }
+        val name = type.name
+        val hpp = File(GeneratorConfig.generatePath, type.getPath())
+        hpp.writeText(
+            """
 /**
  * @file  $name.hpp
  *
  */
 #pragma once
 #define AUTO_GENERATED
-#include "${structType.getGlobalHeaderPath()}"
-${structType.getRelativeInclusions()}
-#define BEFORE_EXTRA
-${structType.beforeExtra}
-#undef BEFORE_EXTRA
+#include "${BaseType.GLOBAL_HEADER_PATH}"
+${type.getRelativeInclusions()}
 
-${structType.comment}
 struct $name {
 
-#define AFTER_EXTRA
-${structType.afterExtra}
-#undef AFTER_EXTRA
 """.trimIndent()
-            )
-            hpp.appendText(structType.genAntiReconstruction())
-            hpp.appendText(structType.genPublic())
-            hpp.appendText(structType.genProtected())
-            hpp.appendText(structType.genPrivate())
-            hpp.appendText("};")
-        }
+        )
+        hpp.appendText(type.genAntiReconstruction())
+        hpp.appendText(type.genPublic())
+        hpp.appendText(type.genProtected())
+        hpp.appendText(type.genPrivate())
+        hpp.appendText("};")
     }
 }

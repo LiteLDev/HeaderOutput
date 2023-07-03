@@ -1,13 +1,11 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.HeaderOutput
 import com.liteldev.headeroutput.config.origindata.MemberTypeData
 import com.liteldev.headeroutput.config.origindata.TypeData
 
 open class ClassType(
     name: String, typeData: TypeData,
     var parent: ClassType? = null,
-    private val children: MutableMap<String, ClassType> = mutableMapOf(),
 ) : BaseType(name, typeData) {
 
     // TODO: Fix in header generator
@@ -19,15 +17,6 @@ open class ClassType(
         }
     }
 
-    override fun getPath(): String {
-        return "./$name.hpp"
-        /*if (parent == null) {
-            "./$name"
-        } else {
-            parent!!.getPath() + "/" + name
-        }*/
-    }
-
     override fun hashCode(): Int {
         return name.hashCode()
     }
@@ -35,22 +24,9 @@ open class ClassType(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-
         other as ClassType
-
         if (name != other.name) return false
-        if (typeData != other.typeData) return false
-
-        return true
-    }
-
-    fun constructLinkedClassMap(rootClasses: MutableMap<String, ClassType>) {
-        typeData.parentTypes?.also { parentNames ->
-            parent = HeaderOutput.classMap[parentNames[0]]?.also {
-                it.children[name] = this
-            }
-        } ?: run { rootClasses[name] = this }
-        parent?.let(includeList::add)
+        return typeData == other.typeData
     }
 
     open fun genAntiReconstruction(): String {
@@ -98,7 +74,7 @@ open class ClassType(
         var counter = 0
         typeData.virtual?.forEach {
             if (it.namespace.isEmpty() || it.namespace == name)
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it), vIndex = counter))
+                sb.appendLine(it.genFuncString(vIndex = counter))
             counter++
         }
 
@@ -107,7 +83,6 @@ open class ClassType(
             typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
                 sb.appendLine(
                     it.genFuncString(
-                        comment = getCommentOf(it),
                         useFakeSymbol = true
                     )
                 )
@@ -116,10 +91,10 @@ open class ClassType(
         }
 
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+            sb.appendLine(it.genFuncString())
         }
         typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+            sb.appendLine(it.genFuncString())
         }
         if (sb.equals("public:\n"))
             return ""
@@ -141,11 +116,11 @@ open class ClassType(
             sb.appendLine("protected:")
         typeData.protectedTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         if (sb.equals("protected:\n") || sb.equals("//protected:\n"))
             return ""
@@ -167,11 +142,11 @@ open class ClassType(
             sb.appendLine("private:")
         typeData.privateTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         if (sb.equals("private:\n") || sb.equals("//private:\n"))
             return ""

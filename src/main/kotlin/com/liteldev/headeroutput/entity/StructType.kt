@@ -6,9 +6,6 @@ import com.liteldev.headeroutput.config.origindata.TypeData
 class StructType(
     name: String, typeData: TypeData,
 ) : ClassType(name, typeData) {
-    override fun getPath(): String {
-        return "./$name.hpp"
-    }
 
     override fun genAntiReconstruction(): String {
         val public = arrayListOf<MemberTypeData>()
@@ -44,5 +41,4 @@ class StructType(
         sb.appendLine()
         return sb.toString()
     }
-
 }

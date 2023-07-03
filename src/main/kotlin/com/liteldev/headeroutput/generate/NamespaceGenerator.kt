@@ -1,37 +1,35 @@
 package com.liteldev.headeroutput.generate
 
-import com.liteldev.headeroutput.HeaderOutput
+import com.liteldev.headeroutput.config.GeneratorConfig
+import com.liteldev.headeroutput.entity.BaseType
+import com.liteldev.headeroutput.entity.NamespaceType
 import java.io.File
 
-object NamespaceGenerator {
+object NamespaceGenerator : Generator {
 
-    fun generate() {
-        HeaderOutput.namespaceMap.forEach { (name, namespaceType) ->
-            val file = File(HeaderOutput.GENERATE_PATH, namespaceType.getPath())
-            file.writeText(
-                """
+    override fun generate(type: BaseType) {
+        if (type !is NamespaceType) {
+            println("NamespaceGenerator: ${type.name} is not NamespaceType")
+            return
+        }
+        val name = type.name
+        val file = File(GeneratorConfig.generatePath, type.getPath())
+        file.writeText(
+            """
 /**
  * @file  $name.hpp
  *
  */
 #pragma once
 #define AUTO_GENERATED
-#include "${namespaceType.getGlobalHeaderPath()}"
-${namespaceType.getRelativeInclusions()}
-#define BEFORE_EXTRA
-${namespaceType.beforeExtra}
-#undef BEFORE_EXTRA
+#include "${BaseType.GLOBAL_HEADER_PATH}"
+${type.getRelativeInclusions()}
 
-${namespaceType.comment}
 namespace $name {
 
-#define AFTER_EXTRA
-${namespaceType.afterExtra}
-#undef AFTER_EXTRA
-${namespaceType.genPublic()}
+${type.genPublic()}
 };
 """.trimIndent()
-            )
-        }
+        )
     }
 }

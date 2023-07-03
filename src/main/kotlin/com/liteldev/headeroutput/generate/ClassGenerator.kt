@@ -1,42 +1,40 @@
 package com.liteldev.headeroutput.generate
 
-import com.liteldev.headeroutput.HeaderOutput
+import com.liteldev.headeroutput.config.GeneratorConfig
+import com.liteldev.headeroutput.entity.BaseType
+import com.liteldev.headeroutput.entity.ClassType
 import java.io.File
 
-object ClassGenerator {
+object ClassGenerator : Generator {
 
-    fun generate() {
-        HeaderOutput.classMap.forEach { (name, classType) ->
-            val hpp = File(HeaderOutput.GENERATE_PATH, classType.getPath())
-            hpp.writeText(
-                """
+    override fun generate(type: BaseType) {
+        if (type !is ClassType) {
+            println("ClassGenerator: ${type.name} is not ClassType")
+            return
+        }
+        val name = type.name
+        val hpp = File(GeneratorConfig.generatePath, type.getPath())
+        hpp.writeText(
+            """
 /**
  * @file  $name.hpp
  *
  */
 #pragma once
 #define AUTO_GENERATED
-#include "${classType.getGlobalHeaderPath()}"
-${classType.getRelativeInclusions()}
-#define BEFORE_EXTRA
-${classType.beforeExtra}
-#undef BEFORE_EXTRA
+#include "${BaseType.GLOBAL_HEADER_PATH}"
+${type.getRelativeInclusions()}
 
-${classType.comment}
-class $name ${run { if (classType.parent != null) ": public ${classType.parent!!.name} " else "" }}{
+class $name ${run { if (type.parent != null) ": public ${type.parent!!.name} " else "" }}{
 
-#define AFTER_EXTRA
-${classType.afterExtra}
-#undef AFTER_EXTRA
 """.trimIndent()
-            )
-            hpp.appendText(classType.genAntiReconstruction())
-            hpp.appendText(classType.genPublic())
-            hpp.appendText(classType.genProtected())
-            hpp.appendText(classType.genPrivate())
-            hpp.appendText(classType.genProtected(genFunc = false))
-            hpp.appendText(classType.genPrivate(genFunc = false))
-            hpp.appendText("};\n")
-        }
+        )
+        hpp.appendText(type.genAntiReconstruction())
+        hpp.appendText(type.genPublic())
+        hpp.appendText(type.genProtected())
+        hpp.appendText(type.genPrivate())
+        hpp.appendText(type.genProtected(genFunc = false))
+        hpp.appendText(type.genPrivate(genFunc = false))
+        hpp.appendText("};\n")
     }
 }

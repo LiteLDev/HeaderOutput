@@ -11,197 +11,128 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import java.io.File
-
 
 @OptIn(ExperimentalSerializationApi::class)
 private val json = Json { explicitNulls = false }
 
+fun main(args: Array<String>) {
+    HeaderOutput.run(args)
+}
+
 object HeaderOutput {
-
-    private lateinit var JSON_PATH: String
-    lateinit var OLD_PATH: String
-    lateinit var GENERATE_PATH: String
-    private lateinit var CONFIG_PATH: String
-
     private lateinit var originData: JsonObject
-    private lateinit var funcListOfTypes: Map<String, TypeData>
-    lateinit var generatorConfig: GeneratorConfig
-    lateinit var realClassNameList: List<String>
-    lateinit var realStructNameList: List<String>
 
-    val classMap = mutableMapOf<String, ClassType>()
-    val structMap = mutableMapOf<String, StructType>()
-    val namespaceMap = mutableMapOf<String, NamespaceType>()
     val notExistBaseType = mutableSetOf<String>()
 
-    @JvmStatic
-    fun main(args: Array<String>) {
+    fun run(args: Array<String>) {
         if (!readCommandLineArgs(args)) return
 
-        loadConfig()
+        GeneratorConfig.loadConfig()
         loadOriginData()
-        loadIdentifier()
-        loadFuncListOfTypes()
+        loadIdentifiedTypes()
+        loadTypes()
 
-        funcListOfTypes.forEach { (typeName, type) ->
-            when {
-                isNameSpace(typeName, type) -> {
-                    namespaceMap[typeName] = NamespaceType(typeName, type).also {
-                        runCatching {
-                            it.readOldExtra()
-                            it.readComments("namespace")
-                        }.onFailure {
-                            println("Warning: $typeName not found in old")
-                        }
-                    }
-                }
-
-                realStructNameList.contains(typeName) -> {
-                    structMap[typeName] = StructType(typeName, type).also {
-                        runCatching {
-                            it.readOldExtra()
-                            it.readComments("struct")
-                        }.onFailure {
-                            println("Warning: $typeName not found in old")
-                        }
-                    }
-                }
-
-                else/*realClassNameList.contains(typeName)*/ -> {
-                    classMap[typeName] = ClassType(typeName, type).also {
-                        runCatching {
-                            it.readOldExtra()
-                            it.readComments("class")
-                        }.onFailure {
-                            println("Warning: $typeName not found in old")
-                        }
-                    }
-                }
-            }
-        }
-
-        //link every class
-        val rootClasses = mutableMapOf<String, ClassType>()
-        classMap.values.forEach { classType ->
-            classType.initIncludeList()
-            classType.constructLinkedClassMap(rootClasses)
-        }
-
-        structMap.values.forEach { structType ->
-            structType.initIncludeList()
-        }
-
-        namespaceMap.values.forEach { namespaceType ->
-            namespaceType.initIncludeList()
-        }
+        TypeManager.initInclusionList()
 
         println("Warning: these class has no information in originData but used by other classes\n$notExistBaseType")
-        //println(namespaceMap.keys)
 
-        File(GENERATE_PATH).mkdirs()
+        File(GeneratorConfig.generatePath).mkdirs()
 
-        ClassGenerator.generate()
-        StructGenerator.generate()
-        NamespaceGenerator.generate()
-
-        File(OLD_PATH).listFiles()?.filter { it.isFile }?.forEach {
-            val origin = it.readText()
-            if (!origin.contains("#define AUTO_GENERATED")) {
-                val dest = File(GENERATE_PATH, it.name)
-                if (dest.isFile)
-                    println("Warning: ${dest.name} is already exist")
-                it.copyTo(dest, true)
+        TypeManager.getAllTypes().forEach { type ->
+            when {
+                type.isNamespace() -> NamespaceGenerator.generate(type)
+                type.isStruct() -> StructGenerator.generate(type)
+                type.isClass() -> ClassGenerator.generate(type)
             }
         }
-
-        val oldFileNames = (File(OLD_PATH).listFiles()?.map { it.name } ?: arrayListOf()).toSet()
-        val newFileNames = (File(GENERATE_PATH).listFiles()?.map { it.name } ?: arrayListOf()).toSet()
-
-        println("Deleted:\t" + oldFileNames.subtract(newFileNames))
-        println("Modified:\t" + oldFileNames.intersect(newFileNames))
-        println("Addition:\t" + newFileNames.subtract(oldFileNames))
     }
 
     private fun readCommandLineArgs(args: Array<String>): Boolean {
         val parser = ArgParser("HeaderOutput")
         val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.json")
-        val oldPath by parser.option(ArgType.String, "old", "o", "The old header path").default("./old")
         val generatePath by parser.option(ArgType.String, "generate", "g", "The generate header files path")
             .default("./header")
         val jsonPath by parser.option(ArgType.String, "json", "j", "The original data json file path")
             .default("./header.json")
         parser.parse(args)
-        CONFIG_PATH = configPath
-        OLD_PATH = oldPath
-        GENERATE_PATH = generatePath
-        JSON_PATH = jsonPath
-        if (!File(CONFIG_PATH).isFile) {
+        GeneratorConfig.configPath = configPath
+        GeneratorConfig.generatePath = generatePath
+        GeneratorConfig.jsonPath = jsonPath
+        if (!File(GeneratorConfig.configPath).isFile) {
             println("Invalid config file path")
             return false
         }
-        if (!File(OLD_PATH).isDirectory) {
-            println("Invalid old header files path")
-            return false
-        }
-        if (!File(GENERATE_PATH).isDirectory) {
+        if (!File(GeneratorConfig.generatePath).isDirectory) {
             try {
-                File(GENERATE_PATH).mkdirs()
+                File(GeneratorConfig.generatePath).mkdirs()
             } catch (e: Exception) {
                 println("Fail to create generate header files path")
                 return false
             }
         }
-        if (!File(JSON_PATH).isFile) {
+        if (!File(GeneratorConfig.jsonPath).isFile) {
             println("Invalid original data json file path")
             return false
         }
         return true
     }
 
-    private fun loadConfig() {
-        println("Loading config...")
-        val configText = File(this.CONFIG_PATH).readText()
-        generatorConfig = json.decodeFromString(configText)
-    }
 
     private fun loadOriginData() {
         println("Loading origin data...")
-        val configText = File(JSON_PATH).readText()
+        val configText = File(GeneratorConfig.jsonPath).readText()
         originData = Json.parseToJsonElement(configText).jsonObject
     }
 
-    private fun loadFuncListOfTypes() {
-        println("Loading func list of types...")
-        funcListOfTypes = originData["classes"]?.jsonObject?.filter { (k, _) ->
-            generatorConfig.exclusion.generation.regex.find { k.matches(Regex(it)) } == null
+    private fun loadTypes() {
+        println("Loading types...")
+        originData["classes"]?.jsonObject?.filter { (k, _) ->
+            GeneratorConfig.generationExcludeRegexList.find { k.matches(Regex(it)) } == null
         }?.mapValues { entry ->
             json.decodeFromJsonElement<TypeData>(entry.value).also { type ->
                 var counter = 0
                 type.virtual?.forEach { memberType ->
-                    run {
-                        if (memberType.name == "" && !memberType.isUnknownFunction())
-                            memberType.symbolType = SymbolNodeType.Unknown
-                        if (memberType.isUnknownFunction()) {
-                            memberType.storageClass = StorageClassType.Virtual
-                            memberType.addFlag(MemberTypeData.PTR_CALL)
-                            memberType.name = "void __unk_vfn_${counter}"
-                        }
-                        counter++
+                    // 对于没有名字的虚函数，将其标记为未知函数，并且将其名字设置为 __unk_vfn_0, __unk_vfn_1, ...
+                    if (memberType.name == "" && !memberType.isUnknownFunction())
+                        memberType.symbolType = SymbolNodeType.Unknown
+                    if (memberType.isUnknownFunction()) {
+                        memberType.storageClass = StorageClassType.Virtual
+                        memberType.addFlag(MemberTypeData.FLAG_PTR_CALL)
+                        memberType.name = "void __unk_vfn_${counter}"
                     }
+                    counter++
                 }
             }
-        } ?: mapOf()
+        }?.forEach { (typeName, type) ->
+            TypeManager.addType(
+                typeName,
+                when {
+                    isNameSpace(typeName, type) ->
+                        NamespaceType(typeName, type)
+
+                    isStruct(typeName) ->
+                        StructType(typeName, type)
+
+                    isClass(typeName) ->
+                        ClassType(typeName, type)
+
+                    else -> {
+                        println("Warning: $typeName is not a namespace, struct or class")
+                        ClassType(typeName, type)
+                    }
+                }
+            )
+        }
     }
 
-    private fun loadIdentifier() {
+    private fun loadIdentifiedTypes() {
         println("Loading identifier...")
         val identifier = originData["identifier"]?.jsonObject
-        realClassNameList =
+        TypeManager.classNameList =
             (identifier?.get("class")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }
-        realStructNameList =
+        TypeManager.structNameList =
             (identifier?.get("struct")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }
     }
 }
