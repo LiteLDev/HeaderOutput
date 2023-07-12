@@ -25,20 +25,34 @@ class StructType(
         val sb = StringBuilder()
         if (genOperator || genEmptyParamConstructor || genMoveConstructor) {
             sb.appendLine()
-            sb.appendLine("#ifndef DISABLE_CONSTRUCTOR_PREVENTION_${name.uppercase()}")
+            sb.appendLine("#ifndef DISABLE_CONSTRUCTOR_PREVENTION_${fullEscapeNameUpper}")
             sb.appendLine("public:")
             if (genOperator) {
-                sb.appendLine("    struct $name& operator=(struct $name const &) = delete;")
+                sb.appendLine("    $simpleName& operator=($simpleName const &) = delete;")
             }
             if (genMoveConstructor) {
-                sb.appendLine("    $name(struct $name const &) = delete;")
+                sb.appendLine("    $simpleName($simpleName const &) = delete;")
             }
             if (genEmptyParamConstructor) {
-                sb.appendLine("    $name() = delete;")
+                sb.appendLine("    $simpleName() = delete;")
             }
             sb.appendLine("#endif")
         }
         sb.appendLine()
+        return sb.toString()
+    }
+
+    override fun generateTypeDefine(): String {
+        val sb = StringBuilder("struct $simpleName {\n")
+        if (innerTypes.isNotEmpty()) {
+            sb.appendLine("public:")
+            sb.append(generateInnerTypeDefine().replace("\n", "\n    "))
+        }
+        sb.append(genAntiReconstruction())
+        sb.append(genPublic())
+        sb.append(genProtected())
+        sb.append(genPrivate())
+        sb.appendLine("};")
         return sb.toString()
     }
 }

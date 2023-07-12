@@ -4,9 +4,6 @@ import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.config.origindata.MemberTypeData
 import com.liteldev.headeroutput.config.origindata.TypeData
 import com.liteldev.headeroutput.entity.*
-import com.liteldev.headeroutput.generate.ClassGenerator
-import com.liteldev.headeroutput.generate.NamespaceGenerator
-import com.liteldev.headeroutput.generate.StructGenerator
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -34,27 +31,24 @@ object HeaderOutput {
         loadIdentifiedTypes()
         loadTypes()
 
+        TypeManager.initParents()
         TypeManager.initInclusionList()
 
         println("Warning: these class has no information in originData but used by other classes\n$notExistBaseType")
 
         File(GeneratorConfig.generatePath).mkdirs()
 
-        TypeManager.getAllTypes().forEach { type ->
-            when {
-                type.isNamespace() -> NamespaceGenerator.generate(type)
-                type.isStruct() -> StructGenerator.generate(type)
-                type.isClass() -> ClassGenerator.generate(type)
-            }
-        }
+        TypeManager.generateNestingMap()
+
+        HeaderGenerator.generate()
     }
 
     private fun readCommandLineArgs(args: Array<String>): Boolean {
         val parser = ArgParser("HeaderOutput")
         val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.json")
-        val generatePath by parser.option(ArgType.String, "generate", "g", "The generate header files path")
+        val generatePath by parser.option(ArgType.String, "output-dir", "o", "The header output path")
             .default("./header")
-        val jsonPath by parser.option(ArgType.String, "json", "j", "The original data json file path")
+        val jsonPath by parser.option(ArgType.String, "input", "i", "The original data json file path")
             .default("./header.json")
         parser.parse(args)
         GeneratorConfig.configPath = configPath
@@ -65,9 +59,7 @@ object HeaderOutput {
             return false
         }
         if (!File(GeneratorConfig.generatePath).isDirectory) {
-            try {
-                File(GeneratorConfig.generatePath).mkdirs()
-            } catch (e: Exception) {
+            if (!File(GeneratorConfig.generatePath).mkdirs()) {
                 println("Fail to create generate header files path")
                 return false
             }
@@ -87,6 +79,7 @@ object HeaderOutput {
     }
 
     private fun loadTypes() {
+        val notIdentifiedTypes = mutableSetOf<String>()
         println("Loading types...")
         originData["classes"]?.jsonObject?.filter { (k, _) ->
             GeneratorConfig.generationExcludeRegexList.find { k.matches(Regex(it)) } == null
@@ -119,12 +112,15 @@ object HeaderOutput {
                         ClassType(typeName, type)
 
                     else -> {
-                        println("Warning: $typeName is not a namespace, struct or class")
+                        notIdentifiedTypes.add(typeName)
                         ClassType(typeName, type)
                     }
                 }
             )
         }
+        println(
+            "Warning: can not determine these types' type. Treat them as class type\n$notIdentifiedTypes"
+        )
     }
 
     private fun loadIdentifiedTypes() {

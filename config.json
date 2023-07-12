@@ -5,7 +5,7 @@
                 "^$",
                 "^struct .*$",
                 "^class .*$",
-                ".*(@|::|\\s|<).*",
+                ".*(@|\\s|<).*",
                 "(std|gsl|mce|glm|entt|rapidjson|type_info|leveldb)"
             ]
         },

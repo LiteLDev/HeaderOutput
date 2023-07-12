@@ -5,10 +5,11 @@ import com.liteldev.headeroutput.config.origindata.TypeData
 
 open class ClassType(
     name: String, typeData: TypeData,
-    var parent: ClassType? = null,
 ) : BaseType(name, typeData) {
 
-    // TODO: Fix in header generator
+    val parents = arrayListOf<BaseType>()
+
+    // fixme: Fix in header generator
     init {
         typeData.virtual?.forEach { virtual ->
             typeData.virtualUnordered?.removeIf { unordered ->
@@ -21,12 +22,32 @@ open class ClassType(
         return name.hashCode()
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as ClassType
-        if (name != other.name) return false
-        return typeData == other.typeData
+    override fun generateTypeDefine(): String {
+        val sb = StringBuilder(
+            "class $simpleName ${genParents()}{\n"
+        )
+        if (innerTypes.isNotEmpty()) {
+            sb.appendLine("public:")
+            sb.append(generateInnerTypeDefine().replace("\n", "\n    "))
+        }
+        sb.append(genAntiReconstruction())
+        sb.append(genPublic())
+        sb.append(genProtected())
+        sb.append(genPrivate())
+        sb.append(genProtected(genFunc = false))
+        sb.append(genPrivate(genFunc = false))
+        sb.appendLine("};")
+        return sb.toString()
+    }
+
+    fun genParents(): String {
+        if (parents.isEmpty()) {
+            return ""
+        }
+        val sb = StringBuilder(": ")
+        parents.joinToString(", ") { "public ${it.name}" }.let(sb::append)
+        sb.append(" ")
+        return sb.toString()
     }
 
     open fun genAntiReconstruction(): String {
@@ -51,16 +72,16 @@ open class ClassType(
         val sb = StringBuilder()
         if (genOperator || genEmptyParamConstructor || genMoveConstructor) {
             sb.appendLine()
-            sb.appendLine("#ifndef DISABLE_CONSTRUCTOR_PREVENTION_${name.uppercase()}")
+            sb.appendLine("#ifndef DISABLE_CONSTRUCTOR_PREVENTION_$fullEscapeNameUpper")
             sb.appendLine("public:")
             if (genOperator) {
-                sb.appendLine("    class $name& operator=(class $name const &) = delete;")
+                sb.appendLine("    $simpleName& operator=($simpleName const &) = delete;")
             }
             if (genMoveConstructor) {
-                sb.appendLine("    $name(class $name const &) = delete;")
+                sb.appendLine("    $simpleName($simpleName const &) = delete;")
             }
             if (genEmptyParamConstructor) {
-                sb.appendLine("    $name() = delete;")
+                sb.appendLine("    $simpleName() = delete;")
             }
             sb.appendLine("#endif")
         }
@@ -79,7 +100,7 @@ open class ClassType(
         }
 
         if (typeData.virtualUnordered?.isNotEmpty() == true) {
-            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
+            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullEscapeNameUpper}")
             typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
                 sb.appendLine(
                     it.genFuncString(

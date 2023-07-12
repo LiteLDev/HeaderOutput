@@ -16,3 +16,7 @@ fun StringBuilder.appendSpace(count: Int): StringBuilder {
     }
     return this
 }
+
+//fun removeTypeModifier(type: String): String {
+//    return type.replace("const ", "").replace("volatile ", "").replace("restrict ", "")
+//}
