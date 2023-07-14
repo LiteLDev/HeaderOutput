@@ -2,6 +2,7 @@ package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.config.origindata.MemberTypeData
 import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.relativePath
 
 open class ClassType(
     name: String, typeData: TypeData,
@@ -16,10 +17,6 @@ open class ClassType(
                 virtual.symbol == unordered.symbol
             }
         }
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
     }
 
     override fun generateTypeDefine(): String {
@@ -38,6 +35,15 @@ open class ClassType(
         sb.append(genPrivate(genFunc = false))
         sb.appendLine("};")
         return sb.toString()
+    }
+
+    override fun initIncludeList() {
+        includeList = referenceTypes.filter { !it.name.startsWith(this.name + "::") }
+            .map { this.getPath().relativePath(it.getPath()) }.toMutableSet()
+        if (parents.isNotEmpty()) {
+            includeList.addAll(parents.map { this.getPath().relativePath(it.getPath()) })
+        }
+        includeList.remove("")
     }
 
     fun genParents(): String {
@@ -63,9 +69,9 @@ open class ClassType(
                 size == 1 && this[0].Name == "class $name const &"
             } == true && it.valType.Name == "class $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() ?: true } == null
+        val genEmptyParamConstructor = public.find { it.name == simpleName && it.params?.isEmpty() ?: true } == null
         val genMoveConstructor = public.find {
-            it.name == name && it.params?.run {
+            it.name == simpleName && it.params?.run {
                 size == 1 && this[0].Name == "class $name const &"
             } == true
         } == null

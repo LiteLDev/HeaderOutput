@@ -16,9 +16,9 @@ class StructType(
                 size == 1 && this[0].Name == "struct $name const &"
             } == true && it.valType.Name == "struct $name &"
         } == null
-        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() ?: true } == null
+        val genEmptyParamConstructor = public.find { it.name == simpleName && it.params?.isEmpty() ?: true } == null
         val genMoveConstructor = public.find {
-            it.name == name && it.params?.run {
+            it.name == simpleName && it.params?.run {
                 size == 1 && this[0].Name == "struct $name const &"
             } == true
         } == null

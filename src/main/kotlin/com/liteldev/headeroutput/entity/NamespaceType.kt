@@ -2,6 +2,7 @@ package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.HeaderGenerator.HEADER_SUFFIX
 import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.relativePath
 
 class NamespaceType(
     name: String, typeData: TypeData
@@ -25,6 +26,12 @@ class NamespaceType(
     }
 
     override fun getPath(): String {
-        return name.replace("::", "/") + ".$HEADER_SUFFIX"
+        return "./" + name.replace("::", "/") + ".$HEADER_SUFFIX"
+    }
+
+    override fun initIncludeList() {
+        includeList = referenceTypes.map { this.getPath().relativePath(it.getPath()) }.toMutableSet()
+        includeList.remove(this.getPath().relativePath(this.getPath()))
+        includeList.remove("")
     }
 }

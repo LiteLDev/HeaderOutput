@@ -2,8 +2,12 @@ package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.config.origindata.MemberTypeData
+import com.liteldev.headeroutput.config.origindata.StorageClassType
+import com.liteldev.headeroutput.config.origindata.SymbolNodeType
 import com.liteldev.headeroutput.config.origindata.TypeData
-import com.liteldev.headeroutput.entity.*
+import com.liteldev.headeroutput.entity.ClassType
+import com.liteldev.headeroutput.entity.NamespaceType
+import com.liteldev.headeroutput.entity.StructType
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -14,16 +18,11 @@ import java.io.File
 @OptIn(ExperimentalSerializationApi::class)
 private val json = Json { explicitNulls = false }
 
-fun main(args: Array<String>) {
-    HeaderOutput.run(args)
-}
-
 object HeaderOutput {
     private lateinit var originData: JsonObject
 
-    val notExistBaseType = mutableSetOf<String>()
-
-    fun run(args: Array<String>) {
+    @JvmStatic
+    fun main(args: Array<String>) {
         if (!readCommandLineArgs(args)) return
 
         GeneratorConfig.loadConfig()
@@ -32,13 +31,9 @@ object HeaderOutput {
         loadTypes()
 
         TypeManager.initParents()
+        TypeManager.initReferences()
+        TypeManager.initNestingMap()
         TypeManager.initInclusionList()
-
-        println("Warning: these class has no information in originData but used by other classes\n$notExistBaseType")
-
-        File(GeneratorConfig.generatePath).mkdirs()
-
-        TypeManager.generateNestingMap()
 
         HeaderGenerator.generate()
     }

@@ -3,8 +3,6 @@ package com.liteldev.headeroutput
 import com.liteldev.headeroutput.config.origindata.TypeData
 import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.ClassType
-import com.liteldev.headeroutput.entity.NamespaceType
-import com.liteldev.headeroutput.entity.StructType
 
 object TypeManager {
     private val typeMap = hashMapOf<String, BaseType>()
@@ -42,6 +40,12 @@ object TypeManager {
         }
     }
 
+    fun initReferences() {
+        typeMap.values.forEach { type ->
+            type.collectSelfReferencedType()
+        }
+    }
+
     fun initInclusionList() {
         typeMap.forEach { (_, type) ->
             type.initIncludeList()
@@ -49,7 +53,7 @@ object TypeManager {
     }
 
     /**
-     * @param type: the type to be created, must be a inner type
+     * @param name: the type's name to be created, must be an inner type
      */
     private fun createDummyClass(name: String): BaseType {
         assert(!hasType(name)) { "type $name already exists" }
@@ -74,7 +78,7 @@ object TypeManager {
         return dummyClass
     }
 
-    fun generateNestingMap() {
+    fun initNestingMap() {
         typeMap.filter { !it.key.contains("::") }
             .forEach { (key, value) ->
                 nestingMap[key] = value
@@ -98,32 +102,4 @@ object TypeManager {
         }
     }
 
-}
-
-fun BaseType.isClass(): Boolean = this is ClassType && !this.isStruct()
-
-fun BaseType.isStruct() = this is StructType
-fun BaseType.isNamespace() = this is NamespaceType
-
-fun isNameSpace(typeName: String, typeData: TypeData): Boolean {
-    if (typeData.privateTypes != null
-        || typeData.privateStaticTypes != null
-        || typeData.protectedTypes != null
-        || typeData.protectedStaticTypes != null
-        || typeData.publicStaticTypes != null
-        || typeData.virtual != null
-        || typeData.vtblEntry != null
-    ) {
-        return false
-    }
-    val isClassOrStruct = isStruct(typeName) || isClass(typeName)
-    return (typeData.publicTypes?.find { it.isPtrCall() } == null && !isClassOrStruct)
-}
-
-fun isStruct(typeName: String): Boolean {
-    return TypeManager.structNameList.contains(typeName)
-}
-
-fun isClass(typeName: String): Boolean {
-    return TypeManager.classNameList.contains(typeName)
 }

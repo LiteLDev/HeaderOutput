@@ -12,16 +12,15 @@ object HeaderGenerator {
     private val HEADER_TEMPLATE = """
 #pragma once
 
-#include "$PREDEFINE_FILE_NAME"
-
 
 """.trimIndent()
 
     fun generate() {
+        File(GeneratorConfig.generatePath).mkdirs()
+        createPredefineFile()
         TypeManager.nestingMap.forEach { (_, baseType) ->
             generate(baseType)
         }
-        createPredefineFile()
     }
 
     private fun generate(type: BaseType) {
@@ -29,9 +28,7 @@ object HeaderGenerator {
             type.isNamespace() -> generateNamespace(type)
             else -> {
                 val sb = StringBuilder()
-                var parentPath = GeneratorConfig.generatePath
                 if (type.outerType != null) {
-                    parentPath += type.outerType!!.getPath().removeSuffix(".$HEADER_SUFFIX")
                     sb.appendLine("namespace ${type.outerType!!.name} {")
                     sb.appendLine()
                     sb.appendLine(type.generateTypeDefine())
@@ -39,9 +36,17 @@ object HeaderGenerator {
                 } else {
                     sb.appendLine(type.generateTypeDefine())
                 }
+                val file = File(GeneratorConfig.generatePath, type.getPath())
+                file.writeText(
+                    HEADER_TEMPLATE + """
+#include "${type.getPath().relativePath(PREDEFINE_FILE_NAME)}"
 
-                val targetFile = File(parentPath, type.getPath())
-                targetFile.writeText(HEADER_TEMPLATE + sb.toString())
+// auto generated inclusion list
+${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
+
+
+                """.trimIndent() + sb.toString()
+                )
             }
         }
     }
@@ -50,7 +55,16 @@ object HeaderGenerator {
         assert(type.isNamespace()) { "${type.name} is not namespace" }
 
         val file = File(GeneratorConfig.generatePath, type.getPath())
-        file.writeText(HEADER_TEMPLATE + type.generateTypeDefine())
+        file.writeText(
+            HEADER_TEMPLATE + """
+#include "${type.getPath().relativePath(PREDEFINE_FILE_NAME)}"
+
+// auto generated inclusion list
+${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
+
+
+                """.trimIndent() + type.generateTypeDefine()
+        )
 
         if (type.innerTypes.isNotEmpty()) {
             File(GeneratorConfig.generatePath, type.getPath().removeSuffix(".$HEADER_SUFFIX")).also { it.mkdirs() }

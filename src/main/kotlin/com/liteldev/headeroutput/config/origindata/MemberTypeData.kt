@@ -1,9 +1,6 @@
 package com.liteldev.headeroutput.config.origindata
 
 import com.liteldev.headeroutput.appendSpace
-import com.liteldev.headeroutput.entity.AccessType
-import com.liteldev.headeroutput.entity.StorageClassType
-import com.liteldev.headeroutput.entity.SymbolNodeType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

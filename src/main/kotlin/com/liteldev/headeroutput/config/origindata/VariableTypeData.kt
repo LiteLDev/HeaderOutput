@@ -1,6 +1,5 @@
 package com.liteldev.headeroutput.config.origindata
 
-import com.liteldev.headeroutput.entity.VarSymbolType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
