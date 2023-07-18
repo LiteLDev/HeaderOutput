@@ -1,12 +1,11 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.HeaderGenerator.HEADER_SUFFIX
 import com.liteldev.headeroutput.config.origindata.TypeData
-import com.liteldev.headeroutput.relativePath
+import com.liteldev.headeroutput.relativePathTo
 
 class NamespaceType(
     name: String, typeData: TypeData
-) : BaseType(name, typeData) {
+) : BaseType(name, TypeKind.NAMESPACE, typeData) {
 
     fun genPublic(): String {
         val sb = StringBuilder()
@@ -25,13 +24,13 @@ class NamespaceType(
         return sb.toString()
     }
 
-    override fun getPath(): String {
-        return "./" + name.replace("::", "/") + ".$HEADER_SUFFIX"
-    }
-
     override fun initIncludeList() {
-        includeList = referenceTypes.map { this.getPath().relativePath(it.getPath()) }.toMutableSet()
-        includeList.remove(this.getPath().relativePath(this.getPath()))
+        referenceTypes
+            // not include types can forward declare
+            .filter { it.name.contains("::") }
+            .map { this.getPath().relativePathTo(it.getPath()) }
+            .let(includeList::addAll)
+        includeList.remove(this.getPath().relativePathTo(this.getPath()))
         includeList.remove("")
     }
 }

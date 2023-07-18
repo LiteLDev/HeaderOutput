@@ -20,6 +20,9 @@ private val json = Json { explicitNulls = false }
 
 object HeaderOutput {
     private lateinit var originData: JsonObject
+    private lateinit var classNameList: MutableSet<String>
+    private lateinit var structNameList: MutableSet<String>
+    private lateinit var typeDataMap: MutableMap<String, TypeData>
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -28,7 +31,7 @@ object HeaderOutput {
         GeneratorConfig.loadConfig()
         loadOriginData()
         loadIdentifiedTypes()
-        loadTypes()
+        constructTypes()
 
         TypeManager.initParents()
         TypeManager.initReferences()
@@ -71,59 +74,93 @@ object HeaderOutput {
         println("Loading origin data...")
         val configText = File(GeneratorConfig.jsonPath).readText()
         originData = Json.parseToJsonElement(configText).jsonObject
+        typeDataMap = originData["classes"]?.jsonObject?.mapValues { entry ->
+            json.decodeFromJsonElement<TypeData>(entry.value)
+        }?.toMutableMap() ?: mutableMapOf()
+        typeDataMap.values.forEach { type ->
+            var counter = 0
+            type.virtual?.forEach {
+                // 对于没有名字的虚函数，将其标记为未知函数，并且将其名字设置为 __unk_vfn_0, __unk_vfn_1, ...
+                if (it.name == "" && !it.isUnknownFunction())
+                    it.symbolType = SymbolNodeType.Unknown
+                if (it.isUnknownFunction()) {
+                    it.storageClass = StorageClassType.Virtual
+                    it.addFlag(MemberTypeData.FLAG_PTR_CALL)
+                    it.name = "void __unk_vfn_${counter}"
+                }
+                counter++
+
+            }
+        }
     }
 
-    private fun loadTypes() {
+    private fun constructTypes() {
         val notIdentifiedTypes = mutableSetOf<String>()
         println("Loading types...")
-        originData["classes"]?.jsonObject?.filter { (k, _) ->
-            GeneratorConfig.generationExcludeRegexList.find { k.matches(Regex(it)) } == null
-        }?.mapValues { entry ->
-            json.decodeFromJsonElement<TypeData>(entry.value).also { type ->
-                var counter = 0
-                type.virtual?.forEach { memberType ->
-                    // 对于没有名字的虚函数，将其标记为未知函数，并且将其名字设置为 __unk_vfn_0, __unk_vfn_1, ...
-                    if (memberType.name == "" && !memberType.isUnknownFunction())
-                        memberType.symbolType = SymbolNodeType.Unknown
-                    if (memberType.isUnknownFunction()) {
-                        memberType.storageClass = StorageClassType.Virtual
-                        memberType.addFlag(MemberTypeData.FLAG_PTR_CALL)
-                        memberType.name = "void __unk_vfn_${counter}"
+        typeDataMap
+            .filterNot { (k, _) -> GeneratorConfig.isExcludedFromGeneration(k) }
+            .forEach { (typeName, type) ->
+                TypeManager.addType(
+                    typeName,
+                    when {
+                        isStruct(typeName) -> StructType(typeName, type)
+                        isClass(typeName) -> ClassType(typeName, type)
+                        isNameSpace(typeName, type) -> NamespaceType(typeName, type)
+                        else -> {
+                            notIdentifiedTypes.add(typeName)
+                            ClassType(typeName, type)
+                        }
                     }
-                    counter++
-                }
+                )
             }
-        }?.forEach { (typeName, type) ->
-            TypeManager.addType(
-                typeName,
-                when {
-                    isNameSpace(typeName, type) ->
-                        NamespaceType(typeName, type)
-
-                    isStruct(typeName) ->
-                        StructType(typeName, type)
-
-                    isClass(typeName) ->
-                        ClassType(typeName, type)
-
-                    else -> {
-                        notIdentifiedTypes.add(typeName)
-                        ClassType(typeName, type)
-                    }
-                }
-            )
-        }
-        println(
-            "Warning: can not determine these types' type. Treat them as class type\n$notIdentifiedTypes"
-        )
+        println("Warning: can not determine these types' type. Treat them as class type\n$notIdentifiedTypes")
     }
 
     private fun loadIdentifiedTypes() {
         println("Loading identifier...")
         val identifier = originData["identifier"]?.jsonObject
-        TypeManager.classNameList =
-            (identifier?.get("class")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }
-        TypeManager.structNameList =
-            (identifier?.get("struct")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }
+        classNameList =
+            (identifier?.get("class")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }.toMutableSet()
+        structNameList =
+            (identifier?.get("struct")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }.toMutableSet()
+
+        // check if any type is not identified but derived from other types
+        val referencedTypes = typeDataMap.values
+            .flatMap { it.parentTypes.orEmpty() + it.collectReferencedTypes().keys }
+            .filter { it in originData["classes"]?.jsonObject?.keys.orEmpty() }
+            .toMutableSet()
+            .also {
+                it.removeAll(classNameList)
+                it.removeAll(structNameList)
+            }
+
+        if (referencedTypes.isNotEmpty()) {
+            println(
+                "Warning: these types are referenced from other types but not identified. Treat them as class type\n$referencedTypes"
+            )
+            classNameList.addAll(referencedTypes)
+        }
     }
+
+    private fun isNameSpace(typeName: String, typeData: TypeData): Boolean {
+        if (isStruct(typeName) || isClass(typeName))
+            return false
+        if (listOf(
+                typeData.privateTypes,
+                typeData.privateStaticTypes,
+                typeData.protectedTypes,
+                typeData.protectedStaticTypes,
+                typeData.publicStaticTypes,
+                typeData.virtual,
+                typeData.vtblEntry
+            ).any { it != null }
+        ) return false
+        return typeData.publicTypes?.none { it.isPtrCall() } == true
+    }
+
+    private fun isStruct(typeName: String) = structNameList.contains(typeName)
+
+
+    private fun isClass(typeName: String) = classNameList.contains(typeName)
+
 }

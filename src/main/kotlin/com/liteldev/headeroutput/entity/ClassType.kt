@@ -1,12 +1,11 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.config.origindata.MemberTypeData
 import com.liteldev.headeroutput.config.origindata.TypeData
-import com.liteldev.headeroutput.relativePath
+import com.liteldev.headeroutput.relativePathTo
 
 open class ClassType(
     name: String, typeData: TypeData,
-) : BaseType(name, typeData) {
+) : BaseType(name, TypeKind.CLASS, typeData) {
 
     val parents = arrayListOf<BaseType>()
 
@@ -38,11 +37,13 @@ open class ClassType(
     }
 
     override fun initIncludeList() {
-        includeList = referenceTypes.filter { !it.name.startsWith(this.name + "::") }
-            .map { this.getPath().relativePath(it.getPath()) }.toMutableSet()
+        // not include self, inner type, and types can forward declare
+        referenceTypes.filter { !it.name.startsWith(this.name + "::") && it.name.contains("::") }
+            .map { this.getPath().relativePathTo(it.getPath()) }.let(includeList::addAll)
         if (parents.isNotEmpty()) {
-            includeList.addAll(parents.map { this.getPath().relativePath(it.getPath()) })
+            includeList.addAll(parents.map { this.getPath().relativePathTo(it.getPath()) })
         }
+        includeList.remove(this.getPath().relativePathTo(this.getPath()))
         includeList.remove("")
     }
 
@@ -56,43 +57,44 @@ open class ClassType(
         return sb.toString()
     }
 
-    open fun genAntiReconstruction(): String {
-        val public = arrayListOf<MemberTypeData>()
-        typeData.virtual?.let(public::addAll)
-        typeData.publicTypes?.let(public::addAll)
-        typeData.protectedTypes?.let(public::addAll)
-        typeData.privateTypes?.let(public::addAll)
-        public.filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
-            .let(public::addAll)
-        val genOperator = public.find {
-            it.isOperator() && it.params?.run {
-                size == 1 && this[0].Name == "class $name const &"
-            } == true && it.valType.Name == "class $name &"
-        } == null
-        val genEmptyParamConstructor = public.find { it.name == simpleName && it.params?.isEmpty() ?: true } == null
-        val genMoveConstructor = public.find {
-            it.name == simpleName && it.params?.run {
-                size == 1 && this[0].Name == "class $name const &"
-            } == true
-        } == null
-        val sb = StringBuilder()
-        if (genOperator || genEmptyParamConstructor || genMoveConstructor) {
-            sb.appendLine()
-            sb.appendLine("#ifndef DISABLE_CONSTRUCTOR_PREVENTION_$fullEscapeNameUpper")
-            sb.appendLine("public:")
-            if (genOperator) {
-                sb.appendLine("    $simpleName& operator=($simpleName const &) = delete;")
-            }
-            if (genMoveConstructor) {
-                sb.appendLine("    $simpleName($simpleName const &) = delete;")
-            }
-            if (genEmptyParamConstructor) {
-                sb.appendLine("    $simpleName() = delete;")
-            }
-            sb.appendLine("#endif")
+    fun genAntiReconstruction(): String {
+        val classType = if (this.type == TypeKind.STRUCT) "struct" else "class"
+        val public = typeData.collectInstanceFunction()
+            .filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
+        val genOperator = public.none {
+            it.isOperator() && it.params?.let { params ->
+                params.size == 1 && params[0].Name == "$classType $name const &"
+            } == true && it.valType.Name == "$classType $name &"
         }
-        sb.appendLine()
-        return sb.toString()
+        val genEmptyParamConstructor = public.none { it.name == simpleName && it.params?.isEmpty() ?: true }
+        val genMoveConstructor = public.none {
+            it.name == simpleName && it.params?.let { params ->
+                params.size == 1 && params[0].Name == "$classType $name const &"
+            } == true
+        }
+        return if (!genOperator && !genEmptyParamConstructor && !genMoveConstructor) {
+            "\n"
+        } else
+            StringBuilder(
+                """
+
+#ifndef DISABLE_CONSTRUCTOR_PREVENTION_$fullUpperEscapeName
+public:
+
+            """.trimIndent()
+            ).apply {
+                if (genOperator) {
+                    appendLine("    $simpleName& operator=($simpleName const &) = delete;")
+                }
+                if (genMoveConstructor) {
+                    appendLine("    $simpleName($simpleName const &) = delete;")
+                }
+                if (genEmptyParamConstructor) {
+                    appendLine("    $simpleName() = delete;")
+                }
+                appendLine("#endif")
+                appendLine()
+            }.toString()
     }
 
     fun genPublic(): String {
@@ -106,7 +108,7 @@ open class ClassType(
         }
 
         if (typeData.virtualUnordered?.isNotEmpty() == true) {
-            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullEscapeNameUpper}")
+            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullUpperEscapeName}")
             typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
                 sb.appendLine(
                     it.genFuncString(
@@ -157,9 +159,7 @@ open class ClassType(
     }
 
     fun genPrivate(genFunc: Boolean = true): String {
-        if ((typeData.privateTypes == null || typeData.privateTypes?.isEmpty() == true)
-            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)
-        ) {
+        if ((typeData.privateTypes?.isEmpty() != false) && (typeData.privateStaticTypes?.isEmpty() != false)) {
             return ""
         }
         val sb = StringBuilder()

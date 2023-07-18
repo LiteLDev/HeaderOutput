@@ -25,4 +25,8 @@ object GeneratorConfig {
         generationExcludeRegexList = generatorConfigData.exclusion.generation.regex
         inclusionExcludeRegexList = generatorConfigData.exclusion.inclusion.regex
     }
+
+    fun isExcludedFromGeneration(name: String): Boolean {
+        return generationExcludeRegexList.any { name.matches(it.toRegex()) }
+    }
 }

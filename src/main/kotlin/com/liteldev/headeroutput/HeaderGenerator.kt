@@ -39,7 +39,7 @@ object HeaderGenerator {
                 val file = File(GeneratorConfig.generatePath, type.getPath())
                 file.writeText(
                     HEADER_TEMPLATE + """
-#include "${type.getPath().relativePath(PREDEFINE_FILE_NAME)}"
+#include "${type.getPath().relativePathTo(PREDEFINE_FILE_NAME)}"
 
 // auto generated inclusion list
 ${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
@@ -57,7 +57,7 @@ ${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
         val file = File(GeneratorConfig.generatePath, type.getPath())
         file.writeText(
             HEADER_TEMPLATE + """
-#include "${type.getPath().relativePath(PREDEFINE_FILE_NAME)}"
+#include "${type.getPath().relativePathTo(PREDEFINE_FILE_NAME)}"
 
 // auto generated inclusion list
 ${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
@@ -82,8 +82,11 @@ ${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
 
 #define MCAPI __declspec(dllimport)
 
+#include <forward_list>
+#include <list>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>

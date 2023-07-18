@@ -1,15 +1,17 @@
 package com.liteldev.headeroutput
 
+import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.config.origindata.TypeData
 import com.liteldev.headeroutput.entity.BaseType
+import com.liteldev.headeroutput.entity.BaseType.TypeKind
 import com.liteldev.headeroutput.entity.ClassType
+import com.liteldev.headeroutput.entity.EnumType
+import com.liteldev.headeroutput.entity.StructType
 
 object TypeManager {
     private val typeMap = hashMapOf<String, BaseType>()
 
     val nestingMap = hashMapOf<String, BaseType>()
-    lateinit var classNameList: List<String>
-    lateinit var structNameList: List<String>
 
     fun addType(fullName: String, type: BaseType) {
         typeMap[fullName] = type
@@ -41,7 +43,8 @@ object TypeManager {
     }
 
     fun initReferences() {
-        typeMap.values.forEach { type ->
+        // copy to avoid ConcurrentModificationException due to enum is being added in `collectSelfReferencedType`
+        typeMap.values.toMutableSet().forEach { type ->
             type.collectSelfReferencedType()
         }
     }
@@ -50,32 +53,6 @@ object TypeManager {
         typeMap.forEach { (_, type) ->
             type.initIncludeList()
         }
-    }
-
-    /**
-     * @param name: the type's name to be created, must be an inner type
-     */
-    private fun createDummyClass(name: String): BaseType {
-        assert(!hasType(name)) { "type $name already exists" }
-
-        val dummyClass =
-            ClassType(name, TypeData(null, null, null, null, null, null, null, null, null, null, null))
-
-        if (name.contains("::")) {
-            val parentName = name.substringBeforeLast("::")
-            if (!hasType(parentName)) {
-                createDummyClass(parentName)
-            }
-
-            val parentType = getType(parentName)!!
-            parentType.innerTypes.add(dummyClass)
-            dummyClass.outerType = parentType
-        } else {
-            nestingMap[name] = dummyClass
-        }
-
-        addType(name, dummyClass)
-        return dummyClass
     }
 
     fun initNestingMap() {
@@ -96,10 +73,43 @@ object TypeManager {
             if (!hasType(parentName)) {
                 createDummyClass(parentName)
             }
-            val parentType = getType(parentName)!!
+            val parentType = getType(parentName) ?: return@forEach
             parentType.innerTypes.add(it)
             it.outerType = parentType
         }
     }
 
+    /**
+     * @param name: the type's name to be created, must be an inner type
+     */
+    fun createDummyClass(name: String, type: TypeKind = TypeKind.CLASS): BaseType? {
+        assert(!hasType(name)) { "type $name already exists" }
+
+        if (GeneratorConfig.isExcludedFromGeneration(name)) {
+            return null
+        }
+
+        val dummyClass = when (type) {
+            TypeKind.CLASS -> ClassType(name, TypeData.empty())
+            TypeKind.STRUCT -> StructType(name, TypeData.empty())
+            TypeKind.ENUM -> EnumType(name)
+            else -> throw IllegalArgumentException("type $type is not supported")
+        }
+
+        if (name.contains("::")) {
+            val parentName = name.substringBeforeLast("::")
+            if (!hasType(parentName)) {
+                createDummyClass(parentName)
+            }
+
+            val parentType = getType(parentName) ?: return null
+            parentType.innerTypes.add(dummyClass)
+            dummyClass.outerType = parentType
+        } else {
+            nestingMap[name] = dummyClass
+        }
+
+        addType(name, dummyClass)
+        return dummyClass
+    }
 }
