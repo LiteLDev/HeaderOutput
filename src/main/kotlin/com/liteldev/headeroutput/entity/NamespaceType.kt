@@ -25,7 +25,7 @@ class NamespaceType(
     }
 
     override fun initIncludeList() {
-        referenceTypes
+        collectAllReferencedType()
             // not include types can forward declare
             .filter { it.name.contains("::") }
             .map { this.getPath().relativePathTo(it.getPath()) }

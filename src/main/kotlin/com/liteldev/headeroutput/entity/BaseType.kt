@@ -43,7 +43,7 @@ abstract class BaseType(
         )
     }
 
-    private fun collectAllReferencedType(): Set<BaseType> =
+    protected fun collectAllReferencedType(): Set<BaseType> =
         referenceTypes + innerTypes.flatMap { it.collectAllReferencedType() }
 
     fun generateInnerTypeDefine(): String {

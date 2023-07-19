@@ -39,19 +39,19 @@ data class TypeData(
         virtualUnordered,
     ).flatten()
 
+    private fun matchTypes(name: String) = typeMatchRegex.findAll(name)
+        .map { it.groupValues[2] to BaseType.TypeKind.valueOf(it.groupValues[1].uppercase(Locale.getDefault())) }
+
+
     fun collectReferencedTypes(): Map<String, BaseType.TypeKind> {
-        val typeRegex = Regex("(struct|class|enum)\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
         return collectAllFunction().flatMap { memberType ->
             (memberType.params?.mapNotNull { it.Name } ?: emptyList()) + listOfNotNull(memberType.valType.Name)
-        }.mapNotNull { name ->
-            typeRegex.find(name)
-                ?.let {
-                    it.groupValues[2] to BaseType.TypeKind.valueOf(it.groupValues[1].uppercase(Locale.getDefault()))
-                }
-        }.toMap()
+        }.flatMap(::matchTypes).toMap()
     }
 
     companion object {
+        val typeMatchRegex = Regex("(struct|class|enum)\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
+
         fun empty(): TypeData {
             return TypeData(null, null, null, null, null, null, null, null, null, null, null)
         }

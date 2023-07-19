@@ -6,7 +6,7 @@
                 "^struct .*$",
                 "^class .*$",
                 ".*(@|\\s|<).*",
-                "(std|gsl|mce|glm|entt|rapidjson|type_info|leveldb)"
+                "^(?:std|gsl|mce|glm|entt|rapidjson|type_info|leveldb|asio)"
             ]
         },
         "inclusion": {

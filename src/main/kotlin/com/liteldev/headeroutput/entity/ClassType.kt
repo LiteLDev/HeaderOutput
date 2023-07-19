@@ -38,7 +38,7 @@ open class ClassType(
 
     override fun initIncludeList() {
         // not include self, inner type, and types can forward declare
-        referenceTypes.filter { !it.name.startsWith(this.name + "::") && it.name.contains("::") }
+        collectAllReferencedType().filter { !it.name.startsWith(this.name + "::") && it.name.contains("::") }
             .map { this.getPath().relativePathTo(it.getPath()) }.let(includeList::addAll)
         if (parents.isNotEmpty()) {
             includeList.addAll(parents.map { this.getPath().relativePathTo(it.getPath()) })
