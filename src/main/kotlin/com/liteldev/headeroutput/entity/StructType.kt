@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput.entity
 
+import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.data.TypeData
 
 class StructType(
@@ -11,16 +12,18 @@ class StructType(
     }
 
     override fun generateTypeDefine(): String {
-        val sb = StringBuilder("struct $simpleName {\n")
-        if (innerTypes.isNotEmpty()) {
-            sb.appendLine("public:")
-            sb.append(generateInnerTypeDefine().replace("\n", "\n    "))
+        return buildString {
+            TypeManager.template[name]?.let(this::appendLine)
+            appendLine("struct $simpleName {")
+            if (innerTypes.isNotEmpty()) {
+                appendLine("public:")
+                append(generateInnerTypeDefine().replace("\n", "\n    "))
+            }
+            append(genAntiReconstruction())
+            append(genPublic())
+            append(genProtected())
+            append(genPrivate())
+            appendLine("};")
         }
-        sb.append(genAntiReconstruction())
-        sb.append(genPublic())
-        sb.append(genProtected())
-        sb.append(genPrivate())
-        sb.appendLine("};")
-        return sb.toString()
     }
 }

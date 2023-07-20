@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput.entity
 
+import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
 import com.liteldev.headeroutput.relativePathTo
@@ -20,21 +21,21 @@ open class ClassType(
     }
 
     override fun generateTypeDefine(): String {
-        val sb = StringBuilder(
-            "class $simpleName ${genParents()}{\n"
-        )
-        if (innerTypes.isNotEmpty()) {
-            sb.appendLine("public:")
-            sb.append(generateInnerTypeDefine().replace("\n", "\n    "))
+        return buildString {
+            TypeManager.template[name]?.let(this::appendLine)
+            appendLine("class $simpleName ${genParents()}{")
+            if (innerTypes.isNotEmpty()) {
+                appendLine("public:")
+                append(generateInnerTypeDefine().replace("\n", "\n    "))
+            }
+            append(genAntiReconstruction())
+            append(genPublic())
+            append(genProtected())
+            append(genPrivate())
+            append(genProtected(genFunc = false))
+            append(genPrivate(genFunc = false))
+            appendLine("};")
         }
-        sb.append(genAntiReconstruction())
-        sb.append(genPublic())
-        sb.append(genProtected())
-        sb.append(genPrivate())
-        sb.append(genProtected(genFunc = false))
-        sb.append(genPrivate(genFunc = false))
-        sb.appendLine("};")
-        return sb.toString()
     }
 
     override fun initIncludeList() {

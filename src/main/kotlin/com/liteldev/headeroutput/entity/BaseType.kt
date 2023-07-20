@@ -5,6 +5,7 @@ import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
+import com.liteldev.headeroutput.toSnakeCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -30,24 +31,27 @@ abstract class BaseType(
     val fullUpperEscapeName = fullEscapeName.uppercase(Locale.getDefault())
 
     // should be initialized after nested types are constructed and dummy types are created
-    val path by lazy {
+    val path: String by lazy {
         getTopLevelFileType().run {
             val regexRules = GeneratorConfig.getSortRules().regex
             regexRules.filter { it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
-                return@run "./${it.dst}/${this.name}.$HEADER_SUFFIX"
+                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
             }
             if (declareMap.containsKey(this.name)) {
-                return@run "./${declareMap[this.name]}/${this.name}.$HEADER_SUFFIX"
+                return@run "./${declareMap[this.name]!!.toSnakeCase()}/${this.simpleName}.$HEADER_SUFFIX"
             }
             regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
-                return@run "./${it.dst}/${this.name}.$HEADER_SUFFIX"
+                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
             }
             if (this is ClassType) {
                 val parentRules = GeneratorConfig.getSortRules().parent
-                parentRules.find { this.typeData.parentTypes?.contains(it.src) == true || this.name == it.src }
+                parentRules.find { this.typeData.parentTypes?.contains(it.parent) == true || this.name == it.parent }
                     ?.let {
-                        return@run "./${it.dst}/${this.name}.$HEADER_SUFFIX"
+                        return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
+                if (this.parents.isNotEmpty()) {
+                    return@run this.parents[0].path
+                }
             }
             if (this is EnumType) {
                 return@run "./enums/${this.name.replace("::", "/")}.$HEADER_SUFFIX"

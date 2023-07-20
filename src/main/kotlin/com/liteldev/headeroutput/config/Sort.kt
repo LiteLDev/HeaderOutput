@@ -9,7 +9,7 @@ data class Sort(
 ) {
     @Serializable
     data class Parent(
-        val src: String,
+        val parent: String,
         val dst: String
     )
 
