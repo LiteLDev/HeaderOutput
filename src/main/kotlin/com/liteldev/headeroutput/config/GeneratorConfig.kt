@@ -1,27 +1,44 @@
 package com.liteldev.headeroutput.config
 
+import cc.ekblad.toml.decode
+import cc.ekblad.toml.tomlMapper
+import com.liteldev.headeroutput.config.output.OutputConfig
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.system.exitProcess
 
 object GeneratorConfig {
+    private val logger = KotlinLogging.logger { }
+
     @OptIn(ExperimentalSerializationApi::class)
     private val json = Json { explicitNulls = false }
 
     lateinit var jsonPath: String
     lateinit var generatePath: String
     lateinit var configPath: String
-    lateinit var generationExcludeRegexList: MutableList<String>
-    lateinit var inclusionExcludeRegexList: MutableList<String>
+    lateinit var declareMapPath: String
+    lateinit var generationExcludeRegexList: List<String>
+    lateinit var inclusionExcludeRegexList: List<String>
 
-    private lateinit var generatorConfigData: GeneratorConfigData
+    private lateinit var generatorConfigData: OutputConfig
 
 
     fun loadConfig() {
-        println("Loading config...")
+        logger.info { "Loading config..." }
         val configText = File(configPath).readText()
-        generatorConfigData = json.decodeFromString(configText)
+        generatorConfigData = try {
+            tomlMapper { }.decode(configText)
+        } catch (e: Exception) {
+            try {
+                json.decodeFromString(configText)
+            } catch (e: Exception) {
+                logger.error { "Invalid config file" }
+                exitProcess(1)
+            }
+        }
         generationExcludeRegexList = generatorConfigData.exclusion.generation.regex
         inclusionExcludeRegexList = generatorConfigData.exclusion.inclusion.regex
     }
@@ -29,4 +46,7 @@ object GeneratorConfig {
     fun isExcludedFromGeneration(name: String): Boolean {
         return generationExcludeRegexList.any { name.matches(it.toRegex()) }
     }
+
+    fun getSortRules() = generatorConfigData.sort
+
 }

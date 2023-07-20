@@ -28,9 +28,9 @@ class NamespaceType(
         collectAllReferencedType()
             // not include types can forward declare
             .filter { it.name.contains("::") }
-            .map { this.getPath().relativePathTo(it.getPath()) }
+            .map { this.path.relativePathTo(it.path) }
             .let(includeList::addAll)
-        includeList.remove(this.getPath().relativePathTo(this.getPath()))
+        includeList.remove(this.path.relativePathTo(this.path))
         includeList.remove("")
     }
 }

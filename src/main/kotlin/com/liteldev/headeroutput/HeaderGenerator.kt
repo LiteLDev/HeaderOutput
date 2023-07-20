@@ -2,18 +2,15 @@ package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.entity.BaseType
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
 object HeaderGenerator {
 
     const val HEADER_SUFFIX = "h"
     private const val PREDEFINE_FILE_NAME = "_HeaderOutputPredefine.$HEADER_SUFFIX"
-
-    private val HEADER_TEMPLATE = """
-#pragma once
-
-
-""".trimIndent()
+    private const val HEADER_TEMPLATE = "#pragma once\n\n"
+    private val logger = KotlinLogging.logger { }
 
     fun generate() {
         File(GeneratorConfig.generatePath).mkdirs()
@@ -36,16 +33,15 @@ object HeaderGenerator {
                 } else {
                     sb.appendLine(type.generateTypeDefine())
                 }
-                val file = File(GeneratorConfig.generatePath, type.getPath())
+                val file = File(GeneratorConfig.generatePath, type.path)
+                file.parentFile.mkdirs()
                 file.writeText(
-                    HEADER_TEMPLATE + """
-#include "${type.getPath().relativePathTo(PREDEFINE_FILE_NAME)}"
-
-// auto generated inclusion list
-${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
-
-
-                """.trimIndent() + sb.toString()
+                    buildString {
+                        append(HEADER_TEMPLATE)
+                        append("#include \"${type.path.relativePathTo(PREDEFINE_FILE_NAME)}\"\n\n")
+                        append(generateIncludes(type))
+                        append(sb.toString())
+                    }
                 )
             }
         }
@@ -54,23 +50,33 @@ ${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
     private fun generateNamespace(type: BaseType) {
         assert(type.isNamespace()) { "${type.name} is not namespace" }
 
-        val file = File(GeneratorConfig.generatePath, type.getPath())
+        val file = File(GeneratorConfig.generatePath, type.path)
+        file.parentFile.mkdirs()
         file.writeText(
-            HEADER_TEMPLATE + """
-#include "${type.getPath().relativePathTo(PREDEFINE_FILE_NAME)}"
-
-// auto generated inclusion list
-${type.includeList.sorted().joinToString("\n") { "#include \"$it\"" }}
-
-
-                """.trimIndent() + type.generateTypeDefine()
+            buildString {
+                append(HEADER_TEMPLATE)
+                append("#include \"${type.path.relativePathTo(PREDEFINE_FILE_NAME)}\"\n\n")
+                append(generateIncludes(type))
+                append(type.generateTypeDefine())
+            }
         )
 
         if (type.innerTypes.isNotEmpty()) {
-            File(GeneratorConfig.generatePath, type.getPath().removeSuffix(".$HEADER_SUFFIX")).also { it.mkdirs() }
             type.innerTypes.forEach { innerType ->
                 generate(innerType)
             }
+        }
+    }
+
+    private fun generateIncludes(type: BaseType): String {
+        if (type.includeList.isEmpty()) {
+            return ""
+        }
+        return buildString {
+            append("// auto generated inclusion list\n")
+            append(type.includeList.sorted()
+                .joinToString("\n") { "#include \"$it\"" })
+            append("\n\n")
         }
     }
 

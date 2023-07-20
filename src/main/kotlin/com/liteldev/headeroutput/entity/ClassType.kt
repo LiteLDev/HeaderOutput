@@ -1,6 +1,7 @@
 package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.getTopLevelFileType
 import com.liteldev.headeroutput.relativePathTo
 
 open class ClassType(
@@ -39,13 +40,13 @@ open class ClassType(
     override fun initIncludeList() {
         // not include self, inner type, and types can forward declare
         collectAllReferencedType().filter {
-            !it.name.startsWith(this.name + "::") && (it.name.contains("::") || (it as? ClassType)?.isTemplateClass == true)
+            it.getTopLevelFileType() != this.getTopLevelFileType() && (it.name.contains("::") || (it as? ClassType)?.isTemplateClass == true)
         }
-            .map { this.getPath().relativePathTo(it.getPath()) }.let(includeList::addAll)
+            .map { this.path.relativePathTo(it.path) }.let(includeList::addAll)
         if (parents.isNotEmpty()) {
-            includeList.addAll(parents.map { this.getPath().relativePathTo(it.getPath()) })
+            includeList.addAll(parents.map { this.path.relativePathTo(it.path) })
         }
-        includeList.remove(this.getPath().relativePathTo(this.getPath()))
+        includeList.remove(this.path.relativePathTo(this.path))
         includeList.remove("")
     }
 
