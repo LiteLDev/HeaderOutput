@@ -1,207 +1,166 @@
 package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.config.MemberTypeData
-import com.liteldev.headeroutput.config.TypeData
-import com.liteldev.headeroutput.entity.*
-import com.liteldev.headeroutput.generate.ClassGenerator
-import com.liteldev.headeroutput.generate.NamespaceGenerator
-import com.liteldev.headeroutput.generate.StructGenerator
+import com.liteldev.headeroutput.config.origindata.MemberTypeData
+import com.liteldev.headeroutput.config.origindata.StorageClassType
+import com.liteldev.headeroutput.config.origindata.SymbolNodeType
+import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.entity.ClassType
+import com.liteldev.headeroutput.entity.NamespaceType
+import com.liteldev.headeroutput.entity.StructType
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.*
 import java.io.File
-
 
 @OptIn(ExperimentalSerializationApi::class)
 private val json = Json { explicitNulls = false }
 
 object HeaderOutput {
-
-    private lateinit var JSON_PATH: String
-    lateinit var OLD_PATH: String
-    lateinit var GENERATE_PATH: String
-    private lateinit var CONFIG_PATH: String
-
     private lateinit var originData: JsonObject
-    private lateinit var funcListOfTypes: Map<String, TypeData>
-    lateinit var generatorConfig: GeneratorConfig
-    lateinit var realClassNameList: List<String>
-    lateinit var realStructNameList: List<String>
-
-    val classMap = mutableMapOf<String, ClassType>()
-    val structMap = mutableMapOf<String, StructType>()
-    val namespaceMap = mutableMapOf<String, NamespaceType>()
-    val notExistBaseType = mutableSetOf<String>()
+    private lateinit var classNameList: MutableSet<String>
+    private lateinit var structNameList: MutableSet<String>
+    private lateinit var typeDataMap: MutableMap<String, TypeData>
 
     @JvmStatic
     fun main(args: Array<String>) {
         if (!readCommandLineArgs(args)) return
 
-        loadConfig()
+        GeneratorConfig.loadConfig()
         loadOriginData()
-        loadIdentifier()
-        loadFuncListOfTypes()
+        loadIdentifiedTypes()
+        constructTypes()
 
-        funcListOfTypes.forEach { (typeName, type) ->
-            when {
-                isNameSpace(typeName, type) -> {
-                    namespaceMap[typeName] = NamespaceType(typeName, type).also {
-                        runCatching {
-                            it.readOldExtra()
-                            it.readComments("namespace")
-                        }.onFailure {
-                            println("Warning: $typeName not found in old")
-                        }
-                    }
-                }
+        TypeManager.initParents()
+        TypeManager.initReferences()
+        TypeManager.initNestingMap()
+        TypeManager.initInclusionList()
 
-                realStructNameList.contains(typeName) -> {
-                    structMap[typeName] = StructType(typeName, type).also {
-                        runCatching {
-                            it.readOldExtra()
-                            it.readComments("struct")
-                        }.onFailure {
-                            println("Warning: $typeName not found in old")
-                        }
-                    }
-                }
-
-                else/*realClassNameList.contains(typeName)*/ -> {
-                    classMap[typeName] = ClassType(typeName, type).also {
-                        runCatching {
-                            it.readOldExtra()
-                            it.readComments("class")
-                        }.onFailure {
-                            println("Warning: $typeName not found in old")
-                        }
-                    }
-                }
-            }
-        }
-
-        //link every class
-        val rootClasses = mutableMapOf<String, ClassType>()
-        classMap.values.forEach { classType ->
-            classType.initIncludeList()
-            classType.constructLinkedClassMap(rootClasses)
-        }
-
-        structMap.values.forEach { structType ->
-            structType.initIncludeList()
-        }
-
-        namespaceMap.values.forEach { namespaceType ->
-            namespaceType.initIncludeList()
-        }
-
-        println("Warning: these class has no information in originData but used by other classes\n$notExistBaseType")
-        //println(namespaceMap.keys)
-
-        File(GENERATE_PATH).mkdirs()
-
-        ClassGenerator.generate()
-        StructGenerator.generate()
-        NamespaceGenerator.generate()
-
-        File(OLD_PATH).listFiles()?.filter { it.isFile }?.forEach {
-            val origin = it.readText()
-            if (!origin.contains("#define AUTO_GENERATED")) {
-                val dest = File(GENERATE_PATH, it.name)
-                if (dest.isFile)
-                    println("Warning: ${dest.name} is already exist")
-                it.copyTo(dest, true)
-            }
-        }
-
-        val oldFileNames = (File(OLD_PATH).listFiles()?.map { it.name } ?: arrayListOf()).toSet()
-        val newFileNames = (File(GENERATE_PATH).listFiles()?.map { it.name } ?: arrayListOf()).toSet()
-
-        println("Deleted:\t" + oldFileNames.subtract(newFileNames))
-        println("Modified:\t" + oldFileNames.intersect(newFileNames))
-        println("Addition:\t" + newFileNames.subtract(oldFileNames))
+        HeaderGenerator.generate()
     }
 
     private fun readCommandLineArgs(args: Array<String>): Boolean {
         val parser = ArgParser("HeaderOutput")
         val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.json")
-        val oldPath by parser.option(ArgType.String, "old", "o", "The old header path").default("./old")
-        val generatePath by parser.option(ArgType.String, "generate", "g", "The generate header files path")
+        val generatePath by parser.option(ArgType.String, "output-dir", "o", "The header output path")
             .default("./header")
-        val jsonPath by parser.option(ArgType.String, "json", "j", "The original data json file path")
+        val jsonPath by parser.option(ArgType.String, "input", "i", "The original data json file path")
             .default("./header.json")
         parser.parse(args)
-        CONFIG_PATH = configPath
-        OLD_PATH = oldPath
-        GENERATE_PATH = generatePath
-        JSON_PATH = jsonPath
-        if (!File(CONFIG_PATH).isFile) {
+        GeneratorConfig.configPath = configPath
+        GeneratorConfig.generatePath = generatePath
+        GeneratorConfig.jsonPath = jsonPath
+        if (!File(GeneratorConfig.configPath).isFile) {
             println("Invalid config file path")
             return false
         }
-        if (!File(OLD_PATH).isDirectory) {
-            println("Invalid old header files path")
-            return false
-        }
-        if (!File(GENERATE_PATH).isDirectory) {
-            try {
-                File(GENERATE_PATH).mkdirs()
-            } catch (e: Exception) {
+        if (!File(GeneratorConfig.generatePath).isDirectory) {
+            if (!File(GeneratorConfig.generatePath).mkdirs()) {
                 println("Fail to create generate header files path")
                 return false
             }
         }
-        if (!File(JSON_PATH).isFile) {
+        if (!File(GeneratorConfig.jsonPath).isFile) {
             println("Invalid original data json file path")
             return false
         }
         return true
     }
 
-    private fun loadConfig() {
-        println("Loading config...")
-        val configText = File(this.CONFIG_PATH).readText()
-        generatorConfig = json.decodeFromString(configText)
-    }
 
     private fun loadOriginData() {
         println("Loading origin data...")
-        val configText = File(JSON_PATH).readText()
+        val configText = File(GeneratorConfig.jsonPath).readText()
         originData = Json.parseToJsonElement(configText).jsonObject
-    }
-
-    private fun loadFuncListOfTypes() {
-        println("Loading func list of types...")
-        funcListOfTypes = originData["classes"]?.jsonObject?.filter { (k, _) ->
-            generatorConfig.exclusion.generation.regex.find { k.matches(Regex(it)) } == null
-        }?.mapValues { entry ->
-            json.decodeFromJsonElement<TypeData>(entry.value).also { type ->
-                var counter = 0
-                type.virtual?.forEach { memberType ->
-                    run {
-                        if (memberType.name == "" && !memberType.isUnknownFunction())
-                            memberType.symbolType = SymbolNodeType.Unknown
-                        if (memberType.isUnknownFunction()) {
-                            memberType.storageClass = StorageClassType.Virtual
-                            memberType.addFlag(MemberTypeData.PTR_CALL)
-                            memberType.name = "void __unk_vfn_${counter}"
-                        }
-                        counter++
-                    }
+        typeDataMap = originData["classes"]?.jsonObject?.mapValues { entry ->
+            json.decodeFromJsonElement<TypeData>(entry.value)
+        }?.toMutableMap() ?: mutableMapOf()
+        typeDataMap.values.forEach { type ->
+            var counter = 0
+            type.virtual?.forEach {
+                // 对于没有名字的虚函数，将其标记为未知函数，并且将其名字设置为 __unk_vfn_0, __unk_vfn_1, ...
+                if (it.name == "" && !it.isUnknownFunction())
+                    it.symbolType = SymbolNodeType.Unknown
+                if (it.isUnknownFunction()) {
+                    it.storageClass = StorageClassType.Virtual
+                    it.addFlag(MemberTypeData.FLAG_PTR_CALL)
+                    it.name = "void __unk_vfn_${counter}"
                 }
+                counter++
+
             }
-        } ?: mapOf()
+        }
     }
 
-    private fun loadIdentifier() {
+    private fun constructTypes() {
+        val notIdentifiedTypes = mutableSetOf<String>()
+        println("Loading types...")
+        typeDataMap
+            .filterNot { (k, _) -> GeneratorConfig.isExcludedFromGeneration(k) }
+            .forEach { (typeName, type) ->
+                TypeManager.addType(
+                    typeName,
+                    when {
+                        isStruct(typeName) -> StructType(typeName, type)
+                        isClass(typeName) -> ClassType(typeName, type)
+                        isNameSpace(typeName, type) -> NamespaceType(typeName, type)
+                        else -> {
+                            notIdentifiedTypes.add(typeName)
+                            ClassType(typeName, type)
+                        }
+                    }
+                )
+            }
+        println("Warning: can not determine these types' type. Treat them as class type\n$notIdentifiedTypes")
+    }
+
+    private fun loadIdentifiedTypes() {
         println("Loading identifier...")
         val identifier = originData["identifier"]?.jsonObject
-        realClassNameList =
-            (identifier?.get("class")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }
-        realStructNameList =
-            (identifier?.get("struct")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }
+        classNameList =
+            (identifier?.get("class")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }.toMutableSet()
+        structNameList =
+            (identifier?.get("struct")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }.toMutableSet()
+
+        // check if any type is not identified but derived from other types
+        val referencedTypes = typeDataMap.values
+            .flatMap { it.parentTypes.orEmpty() + it.collectReferencedTypes().keys }
+            .filter { it in originData["classes"]?.jsonObject?.keys.orEmpty() }
+            .toMutableSet()
+            .also {
+                it.removeAll(classNameList)
+                it.removeAll(structNameList)
+            }
+
+        if (referencedTypes.isNotEmpty()) {
+            println(
+                "Warning: these types are referenced from other types but not identified. Treat them as class type\n$referencedTypes"
+            )
+            classNameList.addAll(referencedTypes)
+        }
     }
+
+    private fun isNameSpace(typeName: String, typeData: TypeData): Boolean {
+        if (isStruct(typeName) || isClass(typeName))
+            return false
+        if (listOf(
+                typeData.privateTypes,
+                typeData.privateStaticTypes,
+                typeData.protectedTypes,
+                typeData.protectedStaticTypes,
+                typeData.publicStaticTypes,
+                typeData.virtual,
+                typeData.vtblEntry
+            ).any { it != null }
+        ) return false
+        return typeData.publicTypes?.none { it.isPtrCall() } == true
+    }
+
+    private fun isStruct(typeName: String) = structNameList.contains(typeName)
+
+
+    private fun isClass(typeName: String) = classNameList.contains(typeName)
+
 }

@@ -1,36 +1,36 @@
 package com.liteldev.headeroutput
 
-import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.entity.BaseType
 import java.nio.file.Paths
 
-fun String.relativePath(path: String) = Paths.get(this).relativize(Paths.get(path)).toString().replace("\\", "/")
-
-fun String.parent() = "$this/.."
-
-fun String.substring(startStr: String, endStr: String): String {
-    return substringAfter(startStr, "").substringBefore(endStr, "")
+fun String.relativePathTo(path: String): String {
+    return Paths.get(this.substringBeforeLast("/")).relativize(Paths.get(path)).toString().replace("\\", "/")
 }
 
-fun StringBuilder.appendSpace(count: Int): StringBuilder {
-    for (i in 0 until count) {
-        this.append(" ")
-    }
-    return this
-}
+fun StringBuilder.appendSpace(count: Int): StringBuilder = append(" ".repeat(count))
 
-fun isNameSpace(typeName: String, typeData: TypeData): Boolean {
-    if (typeData.privateTypes != null
-        || typeData.privateStaticTypes != null
-        || typeData.protectedTypes != null
-        || typeData.protectedStaticTypes != null
-        || typeData.publicStaticTypes != null
-        || typeData.virtual != null
-        || typeData.vtblEntry != null
-    ) {
-        return false
+fun BaseType.isClass(): Boolean = this.type == BaseType.TypeKind.CLASS
+
+fun BaseType.isStruct() = this.type == BaseType.TypeKind.STRUCT
+
+fun BaseType.isNamespace() = this.type == BaseType.TypeKind.NAMESPACE
+
+fun BaseType.isEnum() = this.type == BaseType.TypeKind.ENUM
+
+fun BaseType.getTopLevelFileType(): BaseType {
+    outerType ?: return this
+    if (isNamespace()) {
+        return this
     }
-    val containsInIdentifierList =
-        HeaderOutput.realStructNameList.contains(typeName) || HeaderOutput.realClassNameList.contains(typeName)
-    return (typeData.publicTypes?.find { it.isPtrCall() } == null
-            && !containsInIdentifierList)
+    var outer = outerType!!
+    if (outer.isNamespace()) {
+        return this
+    }
+    while (outer.outerType != null) {
+        if (outer.outerType!!.isNamespace()) {
+            return outer
+        }
+        outer = outer.outerType!!
+    }
+    return outer
 }

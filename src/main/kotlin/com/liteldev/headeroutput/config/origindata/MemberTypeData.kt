@@ -1,9 +1,6 @@
-package com.liteldev.headeroutput.config
+package com.liteldev.headeroutput.config.origindata
 
 import com.liteldev.headeroutput.appendSpace
-import com.liteldev.headeroutput.entity.AccessType
-import com.liteldev.headeroutput.entity.StorageClassType
-import com.liteldev.headeroutput.entity.SymbolNodeType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -26,7 +23,6 @@ data class MemberTypeData(
     fun genFuncString(
         namespace: Boolean = false,
         useFakeSymbol: Boolean = false,
-        comment: String = "",
         vIndex: Int = -1
     ): String {
         val symbol =
@@ -42,7 +38,6 @@ data class MemberTypeData(
         if (symbol.isNotEmpty()) {
             ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol ${symbol.replace("@", "\\@")}\n")
         }
-        if (comment.isNotEmpty()) ret.appendSpace(START_BLANK_SPACE + 1).append("*\n").append(comment)
         ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
         ret.appendSpace(START_BLANK_SPACE)
@@ -90,8 +85,6 @@ data class MemberTypeData(
         )
     }
 
-    fun isConst() = flags and CONST == CONST
-
     fun isConstructor() = symbolType == SymbolNodeType.Constructor
 
     fun isDestructor() = symbolType == SymbolNodeType.Destructor
@@ -102,9 +95,10 @@ data class MemberTypeData(
 
     fun isStaticGlobalVariable() = symbolType == SymbolNodeType.StaticVar
 
-    fun isPtrCall() = flags and PTR_CALL == PTR_CALL
+    fun isConst() = hasFlag(FLAG_CONST)
+    fun isPtrCall() = hasFlag(FLAG_PTR_CALL)
 
-    fun isPureCall() = flags and PURE_CALL == PURE_CALL
+    fun isPureCall() = hasFlag(FLAG_PURE_CALL)
 
     fun addFlag(flag: Int) {
         if (flags and flag != flag) flags += flag
@@ -114,18 +108,18 @@ data class MemberTypeData(
         if (flags and flag == flag) flags -= flag
     }
 
+    fun hasFlag(flag: Int) = flags and flag == flag
+
     fun isVirtual() = storageClass == StorageClassType.Virtual
 
     companion object {
         //[0] const
         //[1] __ptr64 spec
         //[2] isPureCall
-        const val CONST = 1 shl 0
-        const val PTR_CALL = 1 shl 1
-        const val PURE_CALL = 1 shl 2
+        const val FLAG_CONST = 1 shl 0
+        const val FLAG_PTR_CALL = 1 shl 1
+        const val FLAG_PURE_CALL = 1 shl 2
 
         const val START_BLANK_SPACE = 4
     }
-
-
 }

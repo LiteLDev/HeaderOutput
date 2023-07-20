@@ -1,6 +1,5 @@
-package com.liteldev.headeroutput.config
+package com.liteldev.headeroutput.config.origindata
 
-import com.liteldev.headeroutput.entity.VarSymbolType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -16,9 +15,7 @@ data class VariableTypeData(
         other as VariableTypeData
 
         if (Name != other.Name) return false
-        if (Type != other.Type) return false
-
-        return true
+        return Type == other.Type
     }
 
     override fun hashCode(): Int {

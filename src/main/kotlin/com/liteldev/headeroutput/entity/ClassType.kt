@@ -1,16 +1,15 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.HeaderOutput
-import com.liteldev.headeroutput.config.MemberTypeData
-import com.liteldev.headeroutput.config.TypeData
+import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.relativePathTo
 
 open class ClassType(
-    name: String, typeData: TypeData,
-    var parent: ClassType? = null,
-    private val children: MutableMap<String, ClassType> = mutableMapOf(),
-) : BaseType(name, typeData) {
+    name: String, typeData: TypeData, private val isTemplateClass: Boolean = false,
+) : BaseType(name, TypeKind.CLASS, typeData) {
 
-    // TODO: Fix in header generator
+    val parents = arrayListOf<BaseType>()
+
+    // fixme: Fix in header generator
     init {
         typeData.virtual?.forEach { virtual ->
             typeData.virtualUnordered?.removeIf { unordered ->
@@ -19,77 +18,85 @@ open class ClassType(
         }
     }
 
-    override fun getPath(): String {
-        return "./$name.hpp"
-        /*if (parent == null) {
-            "./$name"
-        } else {
-            parent!!.getPath() + "/" + name
-        }*/
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ClassType
-
-        if (name != other.name) return false
-        if (typeData != other.typeData) return false
-
-        return true
-    }
-
-    fun constructLinkedClassMap(rootClasses: MutableMap<String, ClassType>) {
-        typeData.parentTypes?.also { parentNames ->
-            parent = HeaderOutput.classMap[parentNames[0]]?.also {
-                it.children[name] = this
-            }
-        } ?: run { rootClasses[name] = this }
-        parent?.let(includeList::add)
-    }
-
-    open fun genAntiReconstruction(): String {
-        val public = arrayListOf<MemberTypeData>()
-        typeData.virtual?.let(public::addAll)
-        typeData.publicTypes?.let(public::addAll)
-        typeData.protectedTypes?.let(public::addAll)
-        typeData.privateTypes?.let(public::addAll)
-        public.filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
-            .let(public::addAll)
-        val genOperator = public.find {
-            it.isOperator() && it.params?.run {
-                size == 1 && this[0].Name == "class $name const &"
-            } == true && it.valType.Name == "class $name &"
-        } == null
-        val genEmptyParamConstructor = public.find { it.name == name && it.params?.isEmpty() ?: true } == null
-        val genMoveConstructor = public.find {
-            it.name == name && it.params?.run {
-                size == 1 && this[0].Name == "class $name const &"
-            } == true
-        } == null
-        val sb = StringBuilder()
-        if (genOperator || genEmptyParamConstructor || genMoveConstructor) {
-            sb.appendLine()
-            sb.appendLine("#ifndef DISABLE_CONSTRUCTOR_PREVENTION_${name.uppercase()}")
+    override fun generateTypeDefine(): String {
+        val sb = StringBuilder(
+            "class $simpleName ${genParents()}{\n"
+        )
+        if (innerTypes.isNotEmpty()) {
             sb.appendLine("public:")
-            if (genOperator) {
-                sb.appendLine("    class $name& operator=(class $name const &) = delete;")
-            }
-            if (genMoveConstructor) {
-                sb.appendLine("    $name(class $name const &) = delete;")
-            }
-            if (genEmptyParamConstructor) {
-                sb.appendLine("    $name() = delete;")
-            }
-            sb.appendLine("#endif")
+            sb.append(generateInnerTypeDefine().replace("\n", "\n    "))
         }
-        sb.appendLine()
+        sb.append(genAntiReconstruction())
+        sb.append(genPublic())
+        sb.append(genProtected())
+        sb.append(genPrivate())
+        sb.append(genProtected(genFunc = false))
+        sb.append(genPrivate(genFunc = false))
+        sb.appendLine("};")
         return sb.toString()
+    }
+
+    override fun initIncludeList() {
+        // not include self, inner type, and types can forward declare
+        collectAllReferencedType().filter {
+            !it.name.startsWith(this.name + "::") && (it.name.contains("::") || (it as? ClassType)?.isTemplateClass == true)
+        }
+            .map { this.getPath().relativePathTo(it.getPath()) }.let(includeList::addAll)
+        if (parents.isNotEmpty()) {
+            includeList.addAll(parents.map { this.getPath().relativePathTo(it.getPath()) })
+        }
+        includeList.remove(this.getPath().relativePathTo(this.getPath()))
+        includeList.remove("")
+    }
+
+    fun genParents(): String {
+        if (parents.isEmpty()) {
+            return ""
+        }
+        val sb = StringBuilder(": ")
+        parents.joinToString(", ") { "public ${it.name}" }.let(sb::append)
+        sb.append(" ")
+        return sb.toString()
+    }
+
+    fun genAntiReconstruction(): String {
+        val classType = if (this.type == TypeKind.STRUCT) "struct" else "class"
+        val public = typeData.collectInstanceFunction()
+            .filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
+        val genOperator = public.none {
+            it.isOperator() && it.params?.let { params ->
+                params.size == 1 && params[0].Name == "$classType $name const &"
+            } == true && it.valType.Name == "$classType $name &"
+        }
+        val genEmptyParamConstructor = public.none { it.name == simpleName && it.params?.isEmpty() ?: true }
+        val genMoveConstructor = public.none {
+            it.name == simpleName && it.params?.let { params ->
+                params.size == 1 && params[0].Name == "$classType $name const &"
+            } == true
+        }
+        return if (!genOperator && !genEmptyParamConstructor && !genMoveConstructor) {
+            "\n"
+        } else
+            StringBuilder(
+                """
+
+#ifndef DISABLE_CONSTRUCTOR_PREVENTION_$fullUpperEscapeName
+public:
+
+            """.trimIndent()
+            ).apply {
+                if (genOperator) {
+                    appendLine("    $simpleName& operator=($simpleName const &) = delete;")
+                }
+                if (genMoveConstructor) {
+                    appendLine("    $simpleName($simpleName const &) = delete;")
+                }
+                if (genEmptyParamConstructor) {
+                    appendLine("    $simpleName() = delete;")
+                }
+                appendLine("#endif")
+                appendLine()
+            }.toString()
     }
 
     fun genPublic(): String {
@@ -98,16 +105,15 @@ open class ClassType(
         var counter = 0
         typeData.virtual?.forEach {
             if (it.namespace.isEmpty() || it.namespace == name)
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it), vIndex = counter))
+                sb.appendLine(it.genFuncString(vIndex = counter))
             counter++
         }
 
         if (typeData.virtualUnordered?.isNotEmpty() == true) {
-            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${name.uppercase()}")
+            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullUpperEscapeName}")
             typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
                 sb.appendLine(
                     it.genFuncString(
-                        comment = getCommentOf(it),
                         useFakeSymbol = true
                     )
                 )
@@ -116,10 +122,10 @@ open class ClassType(
         }
 
         typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+            sb.appendLine(it.genFuncString())
         }
         typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+            sb.appendLine(it.genFuncString())
         }
         if (sb.equals("public:\n"))
             return ""
@@ -141,11 +147,11 @@ open class ClassType(
             sb.appendLine("protected:")
         typeData.protectedTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         if (sb.equals("protected:\n") || sb.equals("//protected:\n"))
             return ""
@@ -155,9 +161,7 @@ open class ClassType(
     }
 
     fun genPrivate(genFunc: Boolean = true): String {
-        if ((typeData.privateTypes == null || typeData.privateTypes?.isEmpty() == true)
-            && (typeData.privateStaticTypes == null || typeData.privateStaticTypes?.isEmpty() == true)
-        ) {
+        if ((typeData.privateTypes?.isEmpty() != false) && (typeData.privateStaticTypes?.isEmpty() != false)) {
             return ""
         }
         val sb = StringBuilder()
@@ -167,11 +171,11 @@ open class ClassType(
             sb.appendLine("private:")
         typeData.privateTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
             if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable()))
-                sb.appendLine(it.genFuncString(comment = this.getCommentOf(it)))
+                sb.appendLine(it.genFuncString())
         }
         if (sb.equals("private:\n") || sb.equals("//private:\n"))
             return ""
