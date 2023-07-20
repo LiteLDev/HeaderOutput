@@ -4,7 +4,7 @@ import com.liteldev.headeroutput.config.origindata.TypeData
 import com.liteldev.headeroutput.relativePathTo
 
 open class ClassType(
-    name: String, typeData: TypeData,
+    name: String, typeData: TypeData, private val isTemplateClass: Boolean = false,
 ) : BaseType(name, TypeKind.CLASS, typeData) {
 
     val parents = arrayListOf<BaseType>()
@@ -38,7 +38,9 @@ open class ClassType(
 
     override fun initIncludeList() {
         // not include self, inner type, and types can forward declare
-        collectAllReferencedType().filter { !it.name.startsWith(this.name + "::") && it.name.contains("::") }
+        collectAllReferencedType().filter {
+            !it.name.startsWith(this.name + "::") && (it.name.contains("::") || (it as? ClassType)?.isTemplateClass == true)
+        }
             .map { this.getPath().relativePathTo(it.getPath()) }.let(includeList::addAll)
         if (parents.isNotEmpty()) {
             includeList.addAll(parents.map { this.getPath().relativePathTo(it.getPath()) })

@@ -12,6 +12,7 @@ object TypeManager {
     private val typeMap = hashMapOf<String, BaseType>()
 
     val nestingMap = hashMapOf<String, BaseType>()
+    val template = hashSetOf<String>()
 
     fun addType(fullName: String, type: BaseType) {
         typeMap[fullName] = type
@@ -90,8 +91,8 @@ object TypeManager {
         }
 
         val dummyClass = when (type) {
-            TypeKind.CLASS -> ClassType(name, TypeData.empty())
-            TypeKind.STRUCT -> StructType(name, TypeData.empty())
+            TypeKind.CLASS -> ClassType(name, TypeData.empty(), template.contains(name))
+            TypeKind.STRUCT -> StructType(name, TypeData.empty(), template.contains(name))
             TypeKind.ENUM -> EnumType(name)
             else -> throw IllegalArgumentException("type $type is not supported")
         }

@@ -3,8 +3,8 @@ package com.liteldev.headeroutput.entity
 import com.liteldev.headeroutput.config.origindata.TypeData
 
 class StructType(
-    name: String, typeData: TypeData,
-) : ClassType(name, typeData) {
+    name: String, typeData: TypeData, isTemplate: Boolean = false
+) : ClassType(name, typeData, isTemplate) {
 
     init {
         type = TypeKind.STRUCT

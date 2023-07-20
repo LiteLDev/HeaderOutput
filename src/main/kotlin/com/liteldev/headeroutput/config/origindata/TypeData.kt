@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput.config.origindata
 
+import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.entity.BaseType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -41,6 +42,7 @@ data class TypeData(
 
     private fun matchTypes(name: String) = typeMatchRegex.findAll(name)
         .map { it.groupValues[2] to BaseType.TypeKind.valueOf(it.groupValues[1].uppercase(Locale.getDefault())) }
+        .onEach { (typeName, _) -> if (name.contains("$typeName<")) TypeManager.template.add(typeName) } // detects template class
 
 
     fun collectReferencedTypes(): Map<String, BaseType.TypeKind> {
