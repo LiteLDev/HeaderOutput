@@ -1,5 +1,4 @@
-package com.liteldev.headeroutput.config.output
-
+package com.liteldev.headeroutput.config
 
 import kotlinx.serialization.Serializable
 

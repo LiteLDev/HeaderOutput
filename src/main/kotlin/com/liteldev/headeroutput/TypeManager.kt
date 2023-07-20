@@ -1,7 +1,7 @@
 package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.BaseType.TypeKind
 import com.liteldev.headeroutput.entity.ClassType

@@ -2,7 +2,6 @@ package com.liteldev.headeroutput.config
 
 import cc.ekblad.toml.decode
 import cc.ekblad.toml.tomlMapper
-import com.liteldev.headeroutput.config.output.OutputConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString

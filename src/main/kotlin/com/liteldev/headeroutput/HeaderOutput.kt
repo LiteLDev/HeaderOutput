@@ -1,10 +1,10 @@
 package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.config.origindata.MemberTypeData
-import com.liteldev.headeroutput.config.origindata.StorageClassType
-import com.liteldev.headeroutput.config.origindata.SymbolNodeType
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.data.MemberTypeData
+import com.liteldev.headeroutput.data.StorageClassType
+import com.liteldev.headeroutput.data.SymbolNodeType
+import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.ClassType
 import com.liteldev.headeroutput.entity.NamespaceType

@@ -1,4 +1,4 @@
-package com.liteldev.headeroutput.config.origindata
+package com.liteldev.headeroutput.data
 
 import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.entity.BaseType

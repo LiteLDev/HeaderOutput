@@ -3,7 +3,7 @@ package com.liteldev.headeroutput.entity
 import com.liteldev.headeroutput.HeaderGenerator.HEADER_SUFFIX
 import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.decodeFromString

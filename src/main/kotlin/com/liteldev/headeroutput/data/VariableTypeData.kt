@@ -1,4 +1,4 @@
-package com.liteldev.headeroutput.config.origindata
+package com.liteldev.headeroutput.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

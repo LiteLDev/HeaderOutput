@@ -1,6 +1,6 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
 import com.liteldev.headeroutput.relativePathTo
 
