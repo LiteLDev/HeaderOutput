@@ -1,6 +1,6 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.data.TypeData
 
 class EnumType(name: String) : BaseType(name, TypeKind.ENUM, TypeData.empty()) {
     override fun generateTypeDefine(): String {

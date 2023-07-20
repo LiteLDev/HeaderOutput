@@ -2,8 +2,14 @@ package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.HeaderGenerator.HEADER_SUFFIX
 import com.liteldev.headeroutput.TypeManager
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.config.GeneratorConfig
+import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
+import com.liteldev.headeroutput.toSnakeCase
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import java.io.File
 import java.util.*
 
 abstract class BaseType(
@@ -24,13 +30,48 @@ abstract class BaseType(
     val fullEscapeName = name.replace("::", "_")
     val fullUpperEscapeName = fullEscapeName.uppercase(Locale.getDefault())
 
+    // should be initialized after nested types are constructed and dummy types are created
+    val path: String by lazy {
+        getTopLevelFileType().run {
+            val regexRules = GeneratorConfig.getSortRules().regex
+            regexRules.filter { it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
+                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+            }
+            if (declareMap.containsKey(this.name)) {
+                return@run "./${declareMap[this.name]!!.toSnakeCase()}/${this.simpleName}.$HEADER_SUFFIX"
+            }
+            regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
+                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+            }
+            if (this is ClassType) {
+                val parentRules = GeneratorConfig.getSortRules().parent
+                parentRules.find { this.typeData.parentTypes?.contains(it.parent) == true || this.name == it.parent }
+                    ?.let {
+                        return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+                    }
+                if (this.parents.isNotEmpty()) {
+                    return@run this.parents[0].path
+                }
+            }
+            if (this is EnumType) {
+                return@run "./enums/${this.name.replace("::", "/")}.$HEADER_SUFFIX"
+            }
+
+            notSortedTypes.add(this.name)
+            return@run "./${name.replace("::", "__")}.$HEADER_SUFFIX"
+
+//            if (this.name.contains("::")) {
+//                return@run "./${
+//                    this.name.replace("::", "/").substringBeforeLast("/", "").toSnakeCase()
+//                }/$simpleName.$HEADER_SUFFIX"
+//            }
+//            return@run "./$name.$HEADER_SUFFIX"
+        }
+    }
+
     abstract fun generateTypeDefine(): String
 
     open fun initIncludeList() {}
-
-    fun getPath(): String {
-        return "./${getTopLevelFileType().name.replace("::", "/")}.$HEADER_SUFFIX"
-    }
 
     fun constructInnerTypeList(outerType: BaseType? = null) {
         this.outerType = outerType
@@ -62,5 +103,17 @@ abstract class BaseType(
 
     enum class TypeKind {
         CLASS, STRUCT, ENUM, UNION, NAMESPACE
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger { }
+        val declareMap by lazy {
+            runCatching {
+                File(GeneratorConfig.declareMapPath).readText().let { Json.decodeFromString<Map<String, String>>(it) }
+            }.onFailure {
+                logger.error { "Failed to load declare map, types will be sorted all by rules" }
+            }.getOrNull() ?: emptyMap()
+        }
+        val notSortedTypes = hashSetOf<String>()
     }
 }

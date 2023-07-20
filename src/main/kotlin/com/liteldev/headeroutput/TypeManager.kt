@@ -1,18 +1,17 @@
 package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.config.origindata.TypeData
-import com.liteldev.headeroutput.entity.BaseType
+import com.liteldev.headeroutput.data.TypeData
+import com.liteldev.headeroutput.entity.*
 import com.liteldev.headeroutput.entity.BaseType.TypeKind
-import com.liteldev.headeroutput.entity.ClassType
-import com.liteldev.headeroutput.entity.EnumType
-import com.liteldev.headeroutput.entity.StructType
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 object TypeManager {
+    private val logger = KotlinLogging.logger { }
     private val typeMap = hashMapOf<String, BaseType>()
 
     val nestingMap = hashMapOf<String, BaseType>()
-    val template = hashSetOf<String>()
+    val template = hashMapOf<String, String>()
 
     fun addType(fullName: String, type: BaseType) {
         typeMap[fullName] = type
@@ -67,7 +66,7 @@ object TypeManager {
         allNestingType.addAll(nestingMap.values)
         val allType = typeMap.values.toSet()
         val notNestingType = allType - allNestingType
-        println("Warning: these class has no nesting relationship\n${notNestingType.map { it.name }}")
+        logger.warn { "These class has no nesting relationship\n${notNestingType.map { it.name }}" }
         // generate a dummy class for each not nesting class
         notNestingType.forEach {
             val parentName = it.name.substringBeforeLast("::")
@@ -90,12 +89,16 @@ object TypeManager {
             return null
         }
 
-        val dummyClass = when (type) {
+        var dummyClass = when (type) {
             TypeKind.CLASS -> ClassType(name, TypeData.empty(), template.contains(name))
             TypeKind.STRUCT -> StructType(name, TypeData.empty(), template.contains(name))
             TypeKind.ENUM -> EnumType(name)
+            TypeKind.NAMESPACE -> NamespaceType(name, TypeData.empty())
             else -> throw IllegalArgumentException("type $type is not supported")
         }
+
+        if (type == TypeKind.CLASS && typeMap.any { (n, t) -> n.startsWith(dummyClass.name + "::") && t.isNamespace() })
+            dummyClass = NamespaceType(name, TypeData.empty())
 
         if (name.contains("::")) {
             val parentName = name.substringBeforeLast("::")

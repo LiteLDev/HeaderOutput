@@ -1,13 +1,15 @@
 package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.config.origindata.MemberTypeData
-import com.liteldev.headeroutput.config.origindata.StorageClassType
-import com.liteldev.headeroutput.config.origindata.SymbolNodeType
-import com.liteldev.headeroutput.config.origindata.TypeData
+import com.liteldev.headeroutput.data.MemberTypeData
+import com.liteldev.headeroutput.data.StorageClassType
+import com.liteldev.headeroutput.data.SymbolNodeType
+import com.liteldev.headeroutput.data.TypeData
+import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.ClassType
 import com.liteldev.headeroutput.entity.NamespaceType
 import com.liteldev.headeroutput.entity.StructType
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -19,6 +21,8 @@ import java.io.File
 private val json = Json { explicitNulls = false }
 
 object HeaderOutput {
+    private val logger = KotlinLogging.logger { }
+
     private lateinit var originData: JsonObject
     private lateinit var classNameList: MutableSet<String>
     private lateinit var structNameList: MutableSet<String>
@@ -39,31 +43,36 @@ object HeaderOutput {
         TypeManager.initInclusionList()
 
         HeaderGenerator.generate()
+
+        logger.warn { "These types are not sorted by any rules or declare map: ${BaseType.notSortedTypes.sorted()}" }
     }
 
     private fun readCommandLineArgs(args: Array<String>): Boolean {
         val parser = ArgParser("HeaderOutput")
-        val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.json")
+        val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.toml")
+        val declareMapFile by parser.option(ArgType.String, "declare-map", "d", "The declare map file path")
+            .default("./declareMap.json")
         val generatePath by parser.option(ArgType.String, "output-dir", "o", "The header output path")
             .default("./header")
         val jsonPath by parser.option(ArgType.String, "input", "i", "The original data json file path")
-            .default("./header.json")
+            .default("./originalData.json")
         parser.parse(args)
         GeneratorConfig.configPath = configPath
         GeneratorConfig.generatePath = generatePath
         GeneratorConfig.jsonPath = jsonPath
+        GeneratorConfig.declareMapPath = declareMapFile
         if (!File(GeneratorConfig.configPath).isFile) {
-            println("Invalid config file path")
+            logger.error { "Invalid config file path" }
             return false
         }
         if (!File(GeneratorConfig.generatePath).isDirectory) {
             if (!File(GeneratorConfig.generatePath).mkdirs()) {
-                println("Fail to create generate header files path")
+                logger.error { "Fail to create generate header files path" }
                 return false
             }
         }
         if (!File(GeneratorConfig.jsonPath).isFile) {
-            println("Invalid original data json file path")
+            logger.error { "Invalid original data json file path" }
             return false
         }
         return true
@@ -71,7 +80,7 @@ object HeaderOutput {
 
 
     private fun loadOriginData() {
-        println("Loading origin data...")
+        logger.info { "Loading origin data..." }
         val configText = File(GeneratorConfig.jsonPath).readText()
         originData = Json.parseToJsonElement(configText).jsonObject
         typeDataMap = originData["classes"]?.jsonObject?.mapValues { entry ->
@@ -96,7 +105,7 @@ object HeaderOutput {
 
     private fun constructTypes() {
         val notIdentifiedTypes = mutableSetOf<String>()
-        println("Loading types...")
+        logger.info { "Loading types..." }
         typeDataMap
             .filterNot { (k, _) -> GeneratorConfig.isExcludedFromGeneration(k) }
             .forEach { (typeName, type) ->
@@ -113,11 +122,11 @@ object HeaderOutput {
                     }
                 )
             }
-        println("Warning: can not determine these types' type. Treat them as class type\n$notIdentifiedTypes")
+        logger.warn { "Can not determine these types' type. Treat them as class type\n$notIdentifiedTypes" }
     }
 
     private fun loadIdentifiedTypes() {
-        println("Loading identifier...")
+        logger.info { "Loading identifier..." }
         val identifier = originData["identifier"]?.jsonObject
         classNameList =
             (identifier?.get("class")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }.toMutableSet()
@@ -135,9 +144,7 @@ object HeaderOutput {
             }
 
         if (referencedTypes.isNotEmpty()) {
-            println(
-                "Warning: these types are referenced from other types but not identified. Treat them as class type\n$referencedTypes"
-            )
+            logger.warn { "These types are referenced from other types but not identified. Treat them as class type\n$referencedTypes" }
             classNameList.addAll(referencedTypes)
         }
     }

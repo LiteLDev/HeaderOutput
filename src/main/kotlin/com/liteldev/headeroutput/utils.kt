@@ -18,6 +18,8 @@ fun BaseType.isNamespace() = this.type == BaseType.TypeKind.NAMESPACE
 fun BaseType.isEnum() = this.type == BaseType.TypeKind.ENUM
 
 fun BaseType.getTopLevelFileType(): BaseType {
+    assert(TypeManager.nestingMap.isNotEmpty()) { "TypeManager.nestingMap is empty" }
+
     outerType ?: return this
     if (isNamespace()) {
         return this
@@ -33,4 +35,19 @@ fun BaseType.getTopLevelFileType(): BaseType {
         outer = outer.outerType!!
     }
     return outer
+}
+
+fun String.toSnakeCase(): String {
+    val sb = StringBuilder()
+    forEachIndexed { index, c ->
+        if (c.isUpperCase()) {
+            if (index != 0) {
+                sb.append("_")
+            }
+            sb.append(c.lowercaseChar())
+        } else {
+            sb.append(c)
+        }
+    }
+    return sb.toString()
 }
