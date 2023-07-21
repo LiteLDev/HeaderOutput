@@ -43,7 +43,6 @@ tasks.test {
 }
 
 tasks.getByName<ShadowJar>("shadowJar") {
-    minimize()
 }
 
 tasks.withType<KotlinCompile> {
