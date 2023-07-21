@@ -26,8 +26,8 @@ parent = [
 regex = [
     { regex = ".*Packet$", dst = "network/packet", override = false },
     { regex = "^mce::.*", dst = "deps/core/mce", override = false },
-    { regex = "^ScriptModuleMinecraft.*", dst = "scripting/modules/minecraft", override = false },
     { regex = "^ScriptModuleMinecraftServerUI.*", dst = "scripting/modules/minecraft_ui", override = false },
+    { regex = "^ScriptModuleMinecraft.*", dst = "scripting/modules/minecraft", override = false },
     { regex = "^Script.*", dst = "external/scripting", override = false },
     { regex = "^[Ii]mgui.*", dst = "external/imgui", override = false },
     { regex = "^Core::.*", dst = "deps/core", override = false },
@@ -36,7 +36,7 @@ regex = [
     { regex = "^BedrockLog::.*", dst = "deps/core/src/debug", override = false },
     { regex = "^BedrockBlock.*", dst = "world/level/block/utils", override = false },
     { regex = ".*VanillaBlock.*", dst = "world/level/block/utils", override = false },
-    { regex = ".*ComplexAliasBlock.*", dst = "world/level/block/utils", override = false },
+    { regex = ".*ComplexAlias.*", dst = "world/level/block/utils", override = false },
     { regex = ".*Json.*", dst = "deps/json", override = false },
     { regex = ".*Component$", dst = "world/components", override = false },
     { regex = ".*BlockActor$", dst = "world/level/block/actor", override = false },
