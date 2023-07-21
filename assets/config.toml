@@ -151,5 +151,6 @@ regex = [
     { regex = "^FeatureLoading::.*", dst = "world/level/levelgen/feature", override = false },
     { regex = "^librarySearch::.*", dst = "common", override = false },
     { regex = "^Realms.*", dst = "client/network/realms", override = false },
+    { regex = "^cg::.*", dst = "deps/core_graphics/common", override = false },
     { regex = ".*_st$", dst = "external/openssl", override = false },
 ]
