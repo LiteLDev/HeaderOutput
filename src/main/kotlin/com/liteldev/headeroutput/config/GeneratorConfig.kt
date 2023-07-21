@@ -19,6 +19,7 @@ object GeneratorConfig {
     lateinit var generatePath: String
     lateinit var configPath: String
     lateinit var declareMapPath: String
+    lateinit var predefineHeaderPath: String
     lateinit var generationExcludeRegexList: List<String>
     lateinit var inclusionExcludeRegexList: List<String>
 

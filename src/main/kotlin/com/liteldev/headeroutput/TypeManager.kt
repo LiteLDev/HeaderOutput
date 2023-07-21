@@ -51,7 +51,7 @@ object TypeManager {
 
     fun initInclusionList() {
         typeMap.forEach { (_, type) ->
-            type.initIncludeList()
+            type.initIncludeAndForwardDeclareList()
         }
     }
 

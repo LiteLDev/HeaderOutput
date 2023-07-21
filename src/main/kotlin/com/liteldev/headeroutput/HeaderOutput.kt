@@ -52,6 +52,8 @@ object HeaderOutput {
         val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.toml")
         val declareMapFile by parser.option(ArgType.String, "declare-map", "d", "The declare map file path")
             .default("./declareMap.json")
+        val predefineHeader by parser.option(ArgType.String, "predefine-header", "p", "The predefine header file path")
+            .default("./predefine.h")
         val generatePath by parser.option(ArgType.String, "output-dir", "o", "The header output path")
             .default("./header")
         val jsonPath by parser.option(ArgType.String, "input", "i", "The original data json file path")
@@ -61,6 +63,7 @@ object HeaderOutput {
         GeneratorConfig.generatePath = generatePath
         GeneratorConfig.jsonPath = jsonPath
         GeneratorConfig.declareMapPath = declareMapFile
+        GeneratorConfig.predefineHeaderPath = predefineHeader
         if (!File(GeneratorConfig.configPath).isFile) {
             logger.error { "Invalid config file path" }
             return false
@@ -73,6 +76,14 @@ object HeaderOutput {
         }
         if (!File(GeneratorConfig.jsonPath).isFile) {
             logger.error { "Invalid original data json file path" }
+            return false
+        }
+        if (!File(GeneratorConfig.declareMapPath).isFile) {
+            logger.error { "Invalid declare map file path" }
+            return false
+        }
+        if (!File(GeneratorConfig.predefineHeaderPath).isFile) {
+            logger.error { "Invalid predefine header file path" }
             return false
         }
         return true

@@ -7,4 +7,15 @@ class EnumType(name: String) : BaseType(name, TypeKind.ENUM, TypeData.empty()) {
         return "enum class $simpleName {};\n"
     }
 
+    override fun generateTypeDeclare(): String {
+        val baseDeclaration = "enum class $simpleName;"
+        if (outerType == null || outerType is ClassType) {
+            return baseDeclaration
+        }
+        if (outerType?.type == TypeKind.NAMESPACE) {
+            return "namespace ${outerType?.name} { $baseDeclaration }"
+        }
+        error("unreachable")
+    }
+
 }

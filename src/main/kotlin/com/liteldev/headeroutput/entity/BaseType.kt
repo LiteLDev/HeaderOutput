@@ -25,10 +25,21 @@ abstract class BaseType(
     val innerTypes: MutableSet<BaseType> = mutableSetOf()
     val referenceTypes: MutableSet<BaseType> = mutableSetOf()
     val includeList: MutableSet<String> = mutableSetOf()
+    val forwardDeclareList: MutableSet<String> = mutableSetOf()
 
     val simpleName = name.substringAfterLast("::")
     val fullEscapeName = name.replace("::", "_")
     val fullUpperEscapeName = fullEscapeName.uppercase(Locale.getDefault())
+
+    // only can use after all types are constructed
+    val allReferences: Set<BaseType> by lazy {
+        referenceTypes + innerTypes.flatMap { it.allReferences }
+    }
+
+    // only can use after all types are constructed
+    val allInnerTypes: Set<BaseType> by lazy {
+        innerTypes + innerTypes.flatMap { it.allInnerTypes }
+    }
 
     // should be initialized after nested types are constructed and dummy types are created
     val path: String by lazy {
@@ -68,7 +79,11 @@ abstract class BaseType(
 
     abstract fun generateTypeDefine(): String
 
-    open fun initIncludeList() {}
+    open fun generateTypeDeclare(): String {
+        TODO("not implemented")
+    }
+
+    open fun initIncludeAndForwardDeclareList() {}
 
     fun constructInnerTypeList(outerType: BaseType? = null) {
         this.outerType = outerType
@@ -79,14 +94,6 @@ abstract class BaseType(
                 it.constructInnerTypeList(this)
             }
         )
-    }
-
-    protected fun collectAllReferencedType(): Set<BaseType> =
-        referenceTypes + innerTypes.flatMap { it.collectAllReferencedType() }
-
-    fun generateInnerTypeDefine(): String {
-        val generatedTypes = innerTypes.joinToString(separator = "\n") { it.generateTypeDefine() }
-        return if (generatedTypes.isNotBlank()) "\n$generatedTypes" else ""
     }
 
     fun collectSelfReferencedType() {

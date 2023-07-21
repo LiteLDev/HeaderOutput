@@ -24,13 +24,21 @@ class NamespaceType(
         return sb.toString()
     }
 
-    override fun initIncludeList() {
-        collectAllReferencedType()
-            // not include types can forward declare
-            .filter { it.name.contains("::") }
+    override fun initIncludeAndForwardDeclareList() {
+        // not include self, inner type, and types can forward declare
+        val declareRequiredTypes = referenceTypes.filter {
+            it.name.contains("::") || (it as? ClassType)?.isTemplateClass == true
+        }
+        declareRequiredTypes
+            .filter { it.outerType is ClassType }
             .map { this.path.relativePathTo(it.path) }
             .let(includeList::addAll)
         includeList.remove(this.path.relativePathTo(this.path))
         includeList.remove("")
+
+        declareRequiredTypes
+            .filter { it.outerType !is ClassType }
+            .map { it.generateTypeDeclare() }
+            .let(forwardDeclareList::addAll)
     }
 }
