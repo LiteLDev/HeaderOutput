@@ -97,10 +97,7 @@ abstract class BaseType(
     }
 
     fun collectSelfReferencedType() {
-        typeData.collectReferencedTypes().forEach { (name, kind) ->
-            if (!TypeManager.hasType(name)) {
-                TypeManager.createDummyClass(name, kind)
-            }
+        typeData.collectReferencedTypes().forEach { (name, _) ->
             TypeManager.getType(name)?.let(referenceTypes::add)
         }
     }

@@ -24,9 +24,9 @@ object HeaderOutput {
     private val logger = KotlinLogging.logger { }
 
     private lateinit var originData: JsonObject
-    private lateinit var classNameList: MutableSet<String>
-    private lateinit var structNameList: MutableSet<String>
-    private lateinit var typeDataMap: MutableMap<String, TypeData>
+    lateinit var classNameList: MutableSet<String>
+    lateinit var structNameList: MutableSet<String>
+    lateinit var typeDataMap: MutableMap<String, TypeData>
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -37,6 +37,7 @@ object HeaderOutput {
         loadIdentifiedTypes()
         constructTypes()
 
+        TypeManager.constructNotExistedType()
         TypeManager.initParents()
         TypeManager.initReferences()
         TypeManager.initNestingMap()
@@ -145,19 +146,17 @@ object HeaderOutput {
             (identifier?.get("struct")?.jsonArray).orEmpty().map { it.jsonPrimitive.content }.toMutableSet()
 
         // check if any type is not identified but derived from other types
-        val referencedTypes = typeDataMap.values
-            .flatMap { it.parentTypes.orEmpty() + it.collectReferencedTypes().keys }
-            .filter { it in originData["classes"]?.jsonObject?.keys.orEmpty() }
+        typeDataMap.values
+            .flatMap { it.collectReferencedTypes().toList() }
+            .filter { it.first in originData["classes"]?.jsonObject?.keys.orEmpty() }
             .toMutableSet()
-            .also {
-                it.removeAll(classNameList)
-                it.removeAll(structNameList)
+            .forEach {
+                when (it.second) {
+                    BaseType.TypeKind.CLASS -> classNameList.add(it.first)
+                    BaseType.TypeKind.STRUCT -> structNameList.add(it.first)
+                    else -> {}
+                }
             }
-
-        if (referencedTypes.isNotEmpty()) {
-            logger.warn { "These types are referenced from other types but not identified. Treat them as class type\n$referencedTypes" }
-            classNameList.addAll(referencedTypes)
-        }
     }
 
     private fun isNameSpace(typeName: String, typeData: TypeData): Boolean {

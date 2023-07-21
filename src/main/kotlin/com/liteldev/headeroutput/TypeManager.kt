@@ -13,6 +13,8 @@ object TypeManager {
     val nestingMap = hashMapOf<String, BaseType>()
     val template = hashMapOf<String, String>()
 
+    private val classTypeNames = hashSetOf<String>()
+
     fun addType(fullName: String, type: BaseType) {
         typeMap[fullName] = type
     }
@@ -27,6 +29,23 @@ object TypeManager {
 
     fun getAllTypes(): List<BaseType> {
         return typeMap.values.toList()
+    }
+
+    fun constructNotExistedType() {
+        val typeDataSet = HeaderOutput.typeDataMap.values
+        val waitingForConstruct = mutableMapOf<String, TypeKind>()
+        typeDataSet.forEach {
+            it.collectReferencedTypes().forEach { (name, kind) ->
+                if (!hasType(name)) {
+                    waitingForConstruct[name] = kind
+                }
+            }
+        }
+        classTypeNames.addAll(HeaderOutput.classNameList)
+        classTypeNames.addAll(HeaderOutput.structNameList)
+        waitingForConstruct.forEach { (name, kind) ->
+            createDummyClass(name, kind)
+        }
     }
 
     fun initParents() {
@@ -82,23 +101,28 @@ object TypeManager {
     /**
      * @param name: the type's name to be created, must be an inner type
      */
-    fun createDummyClass(name: String, type: TypeKind = TypeKind.CLASS): BaseType? {
+    private fun createDummyClass(name: String, type: TypeKind? = null): BaseType? {
         assert(!hasType(name)) { "type $name already exists" }
 
         if (GeneratorConfig.isExcludedFromGeneration(name)) {
             return null
         }
 
-        var dummyClass = when (type) {
+        val dummyClass = if (type == null) {
+            if (typeMap.any { (n, t) -> n.startsWith("$name::") && t.isNamespace() }) {
+                NamespaceType(name, TypeData.empty())
+            } else if (!classTypeNames.contains(name) && classTypeNames.none { name.startsWith("$it::") }) {
+                NamespaceType(name, TypeData.empty())
+            } else {
+                ClassType(name, TypeData.empty(), template.contains(name))
+            }
+        } else when (type) {
             TypeKind.CLASS -> ClassType(name, TypeData.empty(), template.contains(name))
             TypeKind.STRUCT -> StructType(name, TypeData.empty(), template.contains(name))
             TypeKind.ENUM -> EnumType(name)
             TypeKind.NAMESPACE -> NamespaceType(name, TypeData.empty())
             else -> throw IllegalArgumentException("type $type is not supported")
         }
-
-        if (type == TypeKind.CLASS && typeMap.any { (n, t) -> n.startsWith(dummyClass.name + "::") && t.isNamespace() })
-            dummyClass = NamespaceType(name, TypeData.empty())
 
         if (name.contains("::")) {
             val parentName = name.substringBeforeLast("::")
