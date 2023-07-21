@@ -40,9 +40,6 @@ abstract class BaseType(
             if (declareMap.containsKey(this.name)) {
                 return@run "./${declareMap[this.name]!!.toSnakeCase()}/${this.simpleName}.$HEADER_SUFFIX"
             }
-            regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
-                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
-            }
             if (this is ClassType) {
                 val parentRules = GeneratorConfig.getSortRules().parent
                 parentRules.find { this.typeData.parentTypes?.contains(it.parent) == true || this.name == it.parent }
@@ -50,22 +47,22 @@ abstract class BaseType(
                         return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
                 if (this.parents.isNotEmpty()) {
-                    return@run this.parents[0].path
+                    return@run "${this.parents[0].path.substringBeforeLast("/", ".")}/${this.simpleName}.$HEADER_SUFFIX"
                 }
             }
+            regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
+                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+            }
             if (this is EnumType) {
-                return@run "./enums/${this.name.replace("::", "/")}.$HEADER_SUFFIX"
+                if (!this.name.contains("::"))
+                    return@run "./enums/${this.simpleName}.$HEADER_SUFFIX"
+                return@run "./enums/${
+                    this.name.replace("::", "/").substringBeforeLast("/").toSnakeCase()
+                }/$simpleName.$HEADER_SUFFIX"
             }
 
             notSortedTypes.add(this.name)
             return@run "./${name.replace("::", "__")}.$HEADER_SUFFIX"
-
-//            if (this.name.contains("::")) {
-//                return@run "./${
-//                    this.name.replace("::", "/").substringBeforeLast("/", "").toSnakeCase()
-//                }/$simpleName.$HEADER_SUFFIX"
-//            }
-//            return@run "./$name.$HEADER_SUFFIX"
         }
     }
 

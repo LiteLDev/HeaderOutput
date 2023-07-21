@@ -19,7 +19,6 @@ fun parse(node: String): Node {
 fun parseType(type: String): TypeNode? {
     val stack = mutableListOf<TypeNode>()
     var temp = ""
-    println(type)
     fun addChildren(node: Node) {
         if (stack.isNotEmpty()) {
             val parent = stack.removeLast()

@@ -39,15 +39,17 @@ fun BaseType.getTopLevelFileType(): BaseType {
 
 fun String.toSnakeCase(): String {
     val sb = StringBuilder()
+    var lastCharIsSeparator = false
     forEachIndexed { index, c ->
         if (c.isUpperCase()) {
-            if (index != 0) {
+            if (index != 0 && !lastCharIsSeparator) {
                 sb.append("_")
             }
             sb.append(c.lowercaseChar())
         } else {
             sb.append(c)
         }
+        lastCharIsSeparator = c == '/'
     }
     return sb.toString()
 }
