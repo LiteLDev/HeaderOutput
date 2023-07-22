@@ -17,7 +17,7 @@ data class TypeNode(val name: String, val children: List<Node> = emptyList()) : 
         }
         var argCounter = 0
         return "template<${
-            children.joinToString(", ") {
+            children.joinToString {
                 when (it) {
                     is TypeNode -> "typename T${argCounter++}"
                     is IntegerNode -> "int T${argCounter++}"
