@@ -9,6 +9,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 interface IntEnumKind {
     val value: Int
@@ -38,36 +40,35 @@ enum class Test2Enum(override val value: Int) : IntEnumKind {
     companion object : IntEnumSerializer<Test2Enum>(Test2Enum::class.simpleName!!, Test2Enum::class)
 }
 
-object TestEnumSerializer : KSerializer<TestEnum> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TestEnum", PrimitiveKind.INT)
+object Test1EnumSerializer : KSerializer<Test1Enum> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Test1Enum", PrimitiveKind.INT)
 
-    override fun serialize(encoder: Encoder, value: TestEnum) {
+    override fun serialize(encoder: Encoder, value: Test1Enum) {
         encoder.encodeInt(value.value)
     }
 
-    override fun deserialize(decoder: Decoder): TestEnum {
-        return TestEnum.getByValue(decoder.decodeInt())!!
+    override fun deserialize(decoder: Decoder): Test1Enum {
+        return Test1Enum.getByValue(decoder.decodeInt())!!
     }
 }
 
-@Serializable(with = TestEnumSerializer::class)
-enum class TestEnum(val value: Int) {
-    TestEnum1(1), TestEnum2(2);
+@Serializable(with = Test1EnumSerializer::class)
+enum class Test1Enum(val value: Int) {
+    Test1Enum1(1), Test1Enum2(2);
 
     companion object {
-        fun getByValue(value: Int) = values().firstOrNull { it.value == value }
+        fun getByValue(value: Int) = entries.firstOrNull { it.value == value }
     }
 }
 
 @Serializable
-data class SomeData(val TestEnum: TestEnum)
+data class SomeData(val test1Enum: Test1Enum)
 
-fun main() {/*val someJson = """
-        {"TestEnum":2}
-    """.trimIndent()
-    println(Json.decodeFromString<SomeData>(someJson))
-    println(Json.encodeToString(SomeData(TestEnum.TestEnum1)))*/
-    val json = Json.encodeToString(Test2Enum.B)
-    println(Json.encodeToString(Test2Enum.B))
-    println(Json.decodeFromString<Test2Enum>(json))
+class TestEnum {
+    @Test
+    fun testEnumSerializer() {
+        val json = Json.encodeToString(Test2Enum.B)
+        assertEquals("1", json)
+        assertEquals(Test2Enum.B, Json.decodeFromString<Test2Enum>(json))
+    }
 }

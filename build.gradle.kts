@@ -34,8 +34,7 @@ dependencies {
     implementation("io.github.oshai:kotlin-logging-jvm:5.0.0")
     implementation("cc.ekblad:4koma:1.2.0")
 
-    testImplementation(platform("org.junit:junit-bom:5.9.2"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation(kotlin("test"))
 }
 
 tasks.test {
