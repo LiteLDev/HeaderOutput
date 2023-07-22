@@ -44,6 +44,13 @@ object HeaderOutput {
         TypeManager.initInclusionList()
 
         HeaderGenerator.generate()
+        val duplicateFiles = HeaderGenerator.pathMap.filterValues { it.size > 1 }
+        if (duplicateFiles.isNotEmpty()) {
+            logger.warn { "These files are generated more than once:" }
+            duplicateFiles.toSortedMap().forEach { (path, types) ->
+                logger.warn { "$path: ${types.joinToString { it.name }}" }
+            }
+        }
 
         logger.warn { "These types are not sorted by any rules or declare map: ${BaseType.notSortedTypes.sorted()}" }
     }

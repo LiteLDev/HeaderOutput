@@ -12,6 +12,8 @@ object HeaderGenerator {
     private const val HEADER_TEMPLATE = "#pragma once\n\n"
     private val logger = KotlinLogging.logger { }
 
+    val pathMap = hashMapOf<String, MutableList<BaseType>>()
+
     fun generate() {
         File(GeneratorConfig.generatePath).mkdirs()
         createPredefineFile()
@@ -21,6 +23,13 @@ object HeaderGenerator {
     }
 
     private fun generate(type: BaseType) {
+        val path = type.path
+        if (pathMap.containsKey(path)) {
+            pathMap[path]!!.add(type)
+        } else {
+            pathMap[path] = mutableListOf(type)
+        }
+
         when {
             type.isNamespace() -> generateNamespace(type)
             else -> {
