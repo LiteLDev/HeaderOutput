@@ -141,7 +141,8 @@ object HeaderOutput {
                     }
                 )
             }
-        logger.warn { "Can not determine these types' type. Treat them as class type\n$notIdentifiedTypes" }
+        logger.debug { "Can not determine these types' type. Treat them as class type" }
+        logger.debug { notIdentifiedTypes.joinToString() }
     }
 
     private fun loadIdentifiedTypes() {

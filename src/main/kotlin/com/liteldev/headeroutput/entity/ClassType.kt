@@ -119,7 +119,7 @@ open class ClassType(
             return ""
         }
         val sb = StringBuilder(": ")
-        parents.joinToString { "public ${it.name}" }.let(sb::append)
+        parents.joinToString { "public ::${it.name}" }.let(sb::append)
         sb.append(" ")
         return sb.toString()
     }

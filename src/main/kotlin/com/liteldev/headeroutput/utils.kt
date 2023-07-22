@@ -18,7 +18,7 @@ fun BaseType.isNamespace() = this.type == BaseType.TypeKind.NAMESPACE
 fun BaseType.isEnum() = this.type == BaseType.TypeKind.ENUM
 
 fun BaseType.getTopLevelFileType(): BaseType {
-    assert(TypeManager.nestingMap.isNotEmpty()) { "TypeManager.nestingMap is empty" }
+    require(TypeManager.nestingMap.isNotEmpty()) { "TypeManager.nestingMap is empty" }
 
     outerType ?: return this
     if (isNamespace()) {

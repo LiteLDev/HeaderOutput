@@ -32,6 +32,7 @@ object TypeManager {
     }
 
     fun constructNotExistedType() {
+        logger.info { "Constructing not existed types" }
         val typeDataSet = HeaderOutput.typeDataMap.values
         val waitingForConstruct = mutableMapOf<String, TypeKind>()
         typeDataSet.forEach {
@@ -44,11 +45,14 @@ object TypeManager {
         classTypeNames.addAll(HeaderOutput.classNameList)
         classTypeNames.addAll(HeaderOutput.structNameList)
         waitingForConstruct.forEach { (name, kind) ->
-            createDummyClass(name, kind)
+            if (!hasType(name)) {
+                createDummyClass(name, kind)
+            }
         }
     }
 
     fun initParents() {
+        logger.info { "Initializing parents" }
         typeMap.values.filter { it.isClass() }.forEach { type ->
             type as ClassType
             type.typeData.parentTypes?.getOrNull(0)?.run { typeMap[this] }?.let { type.parents.add(it) }
@@ -62,6 +66,7 @@ object TypeManager {
     }
 
     fun initReferences() {
+        logger.info { "Initializing references" }
         // copy to avoid ConcurrentModificationException due to enum is being added in `collectSelfReferencedType`
         typeMap.values.toMutableSet().forEach { type ->
             type.collectSelfReferencedType()
@@ -69,12 +74,14 @@ object TypeManager {
     }
 
     fun initInclusionList() {
+        logger.info { "Initializing inclusion list" }
         typeMap.forEach { (_, type) ->
             type.initIncludeAndForwardDeclareList()
         }
     }
 
     fun initNestingMap() {
+        logger.info { "Initializing nesting map" }
         typeMap.filter { !it.key.contains("::") }
             .forEach { (key, value) ->
                 nestingMap[key] = value
@@ -85,7 +92,8 @@ object TypeManager {
         allNestingType.addAll(nestingMap.values)
         val allType = typeMap.values.toSet()
         val notNestingType = allType - allNestingType
-        logger.warn { "These class has no nesting relationship\n${notNestingType.map { it.name }}" }
+        logger.debug { "These class has no nesting relationship" }
+        logger.debug { notNestingType.joinToString { it.name } }
         // generate a dummy class for each not nesting class
         notNestingType.forEach {
             val parentName = it.name.substringBeforeLast("::")
@@ -102,7 +110,7 @@ object TypeManager {
      * @param name: the type's name to be created, must be an inner type
      */
     private fun createDummyClass(name: String, type: TypeKind? = null): BaseType? {
-        assert(!hasType(name)) { "type $name already exists" }
+        require(!hasType(name)) { "type $name already exists" }
 
         if (GeneratorConfig.isExcludedFromGeneration(name)) {
             return null

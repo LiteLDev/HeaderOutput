@@ -15,11 +15,18 @@ object HeaderGenerator {
     val pathMap = hashMapOf<String, MutableList<BaseType>>()
 
     fun generate() {
+        logger.info { "Generating header files" }
         File(GeneratorConfig.generatePath).mkdirs()
         createPredefineFile()
-        TypeManager.nestingMap.forEach { (_, baseType) ->
+        TypeManager.nestingMap.forEach { (name, baseType) ->
+            // clear last line first
+            print("\r${" ".repeat(50)}\r")
+            print("Generating $name...")
             generate(baseType)
         }
+        // clear last line first
+        print("\r${" ".repeat(50)}\r")
+        logger.info { "Generating header files done" }
     }
 
     private fun generate(type: BaseType) {
@@ -57,7 +64,7 @@ object HeaderGenerator {
     }
 
     private fun generateNamespace(type: BaseType) {
-        assert(type.isNamespace()) { "${type.name} is not namespace" }
+        require(type.isNamespace()) { "${type.name} is not namespace" }
 
         val file = File(GeneratorConfig.generatePath, type.path)
         file.parentFile.mkdirs()
