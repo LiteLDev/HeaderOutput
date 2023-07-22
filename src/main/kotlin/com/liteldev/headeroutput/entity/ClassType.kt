@@ -41,9 +41,10 @@ open class ClassType(
 
         val generateDeclares = buildString {
             appendLine("// $simpleName inner types declare")
-            append(generateOrder.filterIsInstance<ClassType>()
+            appendLine("// clang-format off")
+            appendLine(generateOrder.filterIsInstance<ClassType>()
                 .joinToString(separator = "\n") { it.generateTypeDeclare() })
-            append("\n\n")
+            appendLine("// clang-format on\n")
         }
         val generatedTypes = buildString {
             appendLine("// $simpleName inner types define")

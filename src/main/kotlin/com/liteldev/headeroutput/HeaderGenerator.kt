@@ -71,16 +71,17 @@ object HeaderGenerator {
     private fun generateIncludesAndForwardDeclare(type: BaseType): String {
         return buildString {
             if (type.includeList.isNotEmpty()) {
-                append("// auto generated inclusion list\n")
-                append(type.includeList.sorted()
+                appendLine("// auto generated inclusion list")
+                appendLine(type.includeList.sorted()
                     .joinToString("\n") { "#include \"$it\"" })
-                append("\n\n")
+                appendLine()
             }
             if (type.forwardDeclareList.isNotEmpty()) {
-                append("// auto generated forward declare list\n")
-                append(type.forwardDeclareList.sorted()
+                appendLine("// auto generated forward declare list")
+                appendLine("// clang-format off")
+                appendLine(type.forwardDeclareList.sorted()
                     .joinToString("\n") { it })
-                append("\n\n")
+                appendLine("// clang-format on\n")
             }
         }
     }
