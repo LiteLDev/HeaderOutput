@@ -3,9 +3,10 @@
 generation.regex = [
     "^$",
     "^struct .*$",
+    "^unity_.*$", # preview
     "^class .*$",
     ".*(@|\\s|<).*",
-    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp).*",
+    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt).*",
     "^Conccurency(?:::.*)*$", # microsft Concurrency, no usage. pplinterface.h
     "_WSABUF", # ws2def.h
     "addrinfo", # ws2def.h
@@ -41,6 +42,9 @@ parent = [
 
 regex = [
     { regex = ".*RakNet.*", dst = "deps/raknet", override = false },
+    { regex = ".*RakNet.*", dst = "deps/raknet", override = false },
+    { regex = "^Has.*Filter$", dst = "world/actor/selectors", override = false },
+    { regex = "^CameraPresetsInternals::.*", dst = "world/actor/common", override = false },
     { regex = "^Crypto::Hash::.*", dst = "deps/crypto/hash", override = false },
     { regex = "^Crypto::Random::.*", dst = "deps/crypto/random", override = false },
     { regex = "^Crypto::Symmetric::.*", dst = "deps/crypto/symmetric", override = false },
@@ -87,6 +91,9 @@ regex = [
     { regex = ".*Utility$", dst = "deps/core/utility", override = false },
     { regex = "^Level.*", dst = "world/level", override = false },
     { regex = "^Network.*", dst = "network", override = false },
+    { regex = "^Editor::Cursor::.*", dst = "server/editor/cursor", override = false },
+    { regex = "^Editor::.*UI.*", dst = "server/editor/ui", override = false },
+    { regex = "^Editor::.*Server.*", dst = "server/editor/server", override = false },
     { regex = "^Editor::.*", dst = "server/editor", override = false },
     { regex = ".*Command.*", dst = "server/commands", override = false },
     { regex = "^Automation.*", dst = "network", override = false },
@@ -174,8 +181,10 @@ regex = [
     { regex = "^TextureSetHelpers::.*", dst = "util", override = false },
     { regex = "^ValueProviders::.*", dst = "util", override = false },
     { regex = "^RideableComponentHelpers::.*", dst = "entity/components", override = false },
-    { regex = "RepairableItem.*Versioning::.*", dst = "world/item/components/repairable", override = false },
-    { regex = "DurabilityItem.*Versioning::.*", dst = "world/item/components/durability", override = false },
+    { regex = "^RepairableItem.*Versioning.*", dst = "world/item/components/repairable", override = false },
+    { regex = "^DurabilityItem.*Versioning.*", dst = "world/item/components/durability", override = false },
+    { regex = "^ArmorItem.*Versioning.*", dst = "world/item/components/armor", override = false },
+    { regex = "^WearableItem.*Versioning.*", dst = "world/item/components/wearable", override = false },
     { regex = ".*Item.*Versioning::.*", dst = "world/item/components", override = false },
     { regex = ".*OperationNode.*", dst = "world/level/newbiome", override = false },
     { regex = "^PositionTrackingDB::.*", dst = "world/level", override = false },
