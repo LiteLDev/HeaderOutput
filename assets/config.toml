@@ -5,10 +5,26 @@ generation.regex = [
     "^struct .*$",
     "^class .*$",
     ".*(@|\\s|<).*",
-    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio).*"
+    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp).*",
+    "^Conccurency(?:::.*)*$", # microsft Concurrency, no usage. pplinterface.h
+    "_WSABUF", # ws2def.h
+    "addrinfo", # ws2def.h
+    "sockaddr", # ws2def.h
+    "sockaddr_in", # ws2def.h
+    "sockaddr_in6", # ws2ipdef.h
+    "tm", # corecrt_wtime.h
+    "_Mbstatet", # corecrt.h
+    "HWND__", # unknown
+    "__std_win_error", # xfilesystem_abi.h
 ]
 
 inclusion.regex = ["^(std)$"]
+
+[inclusin]
+
+rules = [
+
+]
 
 [sort]
 parent = [
