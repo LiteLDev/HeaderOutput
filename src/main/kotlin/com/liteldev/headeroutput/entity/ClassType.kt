@@ -1,6 +1,7 @@
 package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.TypeManager
+import com.liteldev.headeroutput.ast.template.NodeType
 import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
 import com.liteldev.headeroutput.relativePathTo
@@ -55,7 +56,7 @@ open class ClassType(
 
     override fun generateTypeDefine(): String = buildString {
         val classType = if (type == TypeKind.STRUCT) "struct" else "class"
-        TypeManager.template[name]?.let(this::appendLine)
+        getTemplateDefine()?.let(this::appendLine)
         appendLine("$classType $simpleName ${genParents()}{")
         if (innerTypes.isNotEmpty()) {
             appendLine("public:")
@@ -97,21 +98,22 @@ open class ClassType(
         // not include self, inner type, and types can forward declare
         val declareRequiredTypes = allReferences.filter {
             val notInSameFile = it.getTopLevelFileType() != this.getTopLevelFileType()
-            val canNotForwardDeclare = it.name.contains("::") || ((it as? ClassType)?.isTemplateClass == true)
-            notInSameFile && canNotForwardDeclare
+            val canNotForwardDeclareSimply = it.name.contains("::") || ((it as? ClassType)?.isTemplateClass == true)
+            notInSameFile && canNotForwardDeclareSimply
         }
-        declareRequiredTypes
-            .filter { it.outerType is ClassType }.map { this.path.relativePathTo(it.path) }
-            .let(includeList::addAll)
+        declareRequiredTypes.forEach {
+            if (it.outerType is ClassType || (it as? ClassType)?.isTemplateClass == true) {
+                this.path.relativePathTo(it.path).let(includeList::add)
+            } else {
+                it.generateTypeDeclare().let(forwardDeclareList::add)
+            }
+        }
+        val parents = collectParents()
         if (parents.isNotEmpty()) {
             includeList.addAll(parents.map { this.path.relativePathTo(it.path) })
         }
         includeList.remove(this.path.relativePathTo(this.path))
         includeList.remove("")
-
-        declareRequiredTypes
-            .filter { it.outerType !is ClassType }.map { it.generateTypeDeclare() }
-            .let(forwardDeclareList::addAll)
     }
 
     fun genParents(): String {
@@ -131,15 +133,15 @@ open class ClassType(
         val genOperator = public.none {
             it.isOperator() && it.params?.let { params ->
                 params.size == 1 && params[0].Name == "$classType $name const &"
-            } == true && it.valType.Name == "$classType $name &"
+            } == true // && it.valType.Name == "$classType $name &" Removed because of overload
         }
         val genEmptyParamConstructor = public.none { it.name == simpleName && it.params?.isEmpty() ?: true }
-        val genMoveConstructor = public.none {
+        val genCopyConstructor = public.none {
             it.name == simpleName && it.params?.let { params ->
                 params.size == 1 && params[0].Name == "$classType $name const &"
             } == true
         }
-        return if (!genOperator && !genEmptyParamConstructor && !genMoveConstructor) {
+        return if (!genOperator && !genEmptyParamConstructor && !genCopyConstructor) {
             "\n"
         } else StringBuilder(
             "\n#ifndef DISABLE_CONSTRUCTOR_PREVENTION_$fullUpperEscapeName\npublic:\n"
@@ -147,7 +149,7 @@ open class ClassType(
             if (genOperator) {
                 appendLine("    $simpleName& operator=($simpleName const &) = delete;")
             }
-            if (genMoveConstructor) {
+            if (genCopyConstructor) {
                 appendLine("    $simpleName($simpleName const &) = delete;")
             }
             if (genEmptyParamConstructor) {
@@ -237,5 +239,45 @@ open class ClassType(
         return sb.toString()
     }
 
-    private fun getTemplateDefine() = TypeManager.template[name]
+    private fun getTemplateDefine(): String? {
+        val params = TypeManager.template[name] ?: return null
+        check(params.isNotEmpty()) { "$name: template must have at least one parameter." }
+        return buildString {
+            append("template<")
+            if (params[0] == NodeType.VARIABLE) {
+                append("typename... T0>")
+                return@buildString
+            }
+            check(params.last() != NodeType.VARIABLE || params.size > 1) {
+                "$name: variable template must be the last template parameter, but not the only one."
+            }
+            val isVariable = params.last() == NodeType.VARIABLE
+            params.forEachIndexed { index, nodeType ->
+                when (nodeType) {
+                    NodeType.TYPE -> append("typename")
+                    NodeType.INTEGER -> append("int")
+                    NodeType.FLOAT -> append("float")
+                    NodeType.BOOLEAN -> append("bool")
+                    NodeType.VARIABLE -> return@forEachIndexed
+                }
+                if (isVariable && index == params.size - 2) {
+                    append("...")
+                }
+                append(" T$index")
+                if (index != params.size - 1 && params.getOrNull(index + 1) != NodeType.VARIABLE) {
+                    append(", ")
+                }
+            }
+            append(">")
+        }
+    }
+
+    fun collectParents(): List<BaseType> {
+        val parents = arrayListOf<BaseType>()
+        parents.addAll(this.parents)
+        innerTypes.forEach { innerType ->
+            if (innerType is ClassType) parents.addAll(innerType.collectParents())
+        }
+        return parents
+    }
 }

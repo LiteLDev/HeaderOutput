@@ -15,6 +15,8 @@ object GeneratorConfig {
     @OptIn(ExperimentalSerializationApi::class)
     private val json = Json { explicitNulls = false }
 
+    var enableRelativePath = false
+    lateinit var rootPath: String
     lateinit var jsonPath: String
     lateinit var generatePath: String
     lateinit var configPath: String
@@ -39,6 +41,8 @@ object GeneratorConfig {
                 exitProcess(1)
             }
         }
+        enableRelativePath = generatorConfigData.config.enableRelativePath
+        rootPath = generatorConfigData.config.rootPath
         generationExcludeRegexList = generatorConfigData.exclusion.generation.regex
         inclusionExcludeRegexList = generatorConfigData.exclusion.inclusion.regex
     }

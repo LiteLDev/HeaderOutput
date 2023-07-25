@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput
 
+import com.liteldev.headeroutput.ast.template.NodeType
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.entity.*
@@ -11,7 +12,7 @@ object TypeManager {
     private val typeMap = hashMapOf<String, BaseType>()
 
     val nestingMap = hashMapOf<String, BaseType>()
-    val template = hashMapOf<String, String>()
+    val template = hashMapOf<String, List<NodeType>>()
 
     private val classTypeNames = hashSetOf<String>()
 

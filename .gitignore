@@ -25,7 +25,7 @@ gradle-app.setting
 
 # HeaderOutput files
 /header/
-/originalData.json
+/originalData*.json
 /config.toml
 /config.json
 /declareMap.json

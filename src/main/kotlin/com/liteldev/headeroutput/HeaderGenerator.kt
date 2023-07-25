@@ -8,8 +8,8 @@ import java.io.File
 object HeaderGenerator {
 
     const val HEADER_SUFFIX = "h"
-    private const val PREDEFINE_FILE_NAME = "_HeaderOutputPredefine.$HEADER_SUFFIX"
     private const val HEADER_TEMPLATE = "#pragma once\n\n"
+    private val PREDEFINE_FILE_NAME = "${GeneratorConfig.rootPath}/_HeaderOutputPredefine.$HEADER_SUFFIX"
     private val logger = KotlinLogging.logger { }
 
     val pathMap = hashMapOf<String, MutableList<BaseType>>()
@@ -19,9 +19,6 @@ object HeaderGenerator {
         File(GeneratorConfig.generatePath).mkdirs()
         createPredefineFile()
         TypeManager.nestingMap.forEach { (name, baseType) ->
-            // clear last line first
-            print("\r${" ".repeat(50)}\r")
-            print("Generating $name...")
             generate(baseType)
         }
         // clear last line first
@@ -30,6 +27,10 @@ object HeaderGenerator {
     }
 
     private fun generate(type: BaseType) {
+        // clear last line first
+        print("\r${" ".repeat(50)}\r")
+        print("Generating ${type.name}...")
+
         val path = type.path
         if (pathMap.containsKey(path)) {
             pathMap[path]!!.add(type)
@@ -104,6 +105,7 @@ object HeaderGenerator {
 
     private fun createPredefineFile() {
         val file = File(GeneratorConfig.generatePath, PREDEFINE_FILE_NAME)
+        file.parentFile.mkdirs()
         file.writeText(File(GeneratorConfig.predefineHeaderPath).readText())
     }
 }

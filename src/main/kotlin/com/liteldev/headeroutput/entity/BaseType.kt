@@ -43,37 +43,38 @@ abstract class BaseType(
 
     // should be initialized after nested types are constructed and dummy types are created
     val path: String by lazy {
+        val root = GeneratorConfig.rootPath
         getTopLevelFileType().run {
             val regexRules = GeneratorConfig.getSortRules().regex
             regexRules.filter { it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
-                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+                return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
             }
             if (declareMap.containsKey(this.name)) {
-                return@run "./${declareMap[this.name]!!.toSnakeCase()}/${this.simpleName}.$HEADER_SUFFIX"
+                return@run "$root/${declareMap[this.name]!!.toSnakeCase()}/${this.simpleName}.$HEADER_SUFFIX"
             }
             if (this is ClassType) {
                 val parentRules = GeneratorConfig.getSortRules().parent
                 parentRules.find { this.typeData.parentTypes?.contains(it.parent) == true || this.name == it.parent }
                     ?.let {
-                        return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+                        return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
                 if (this.parents.isNotEmpty()) {
                     return@run "${this.parents[0].path.substringBeforeLast("/", ".")}/${this.simpleName}.$HEADER_SUFFIX"
                 }
             }
             regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
-                return@run "./${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+                return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
             }
             if (this is EnumType) {
                 if (!this.name.contains("::"))
-                    return@run "./enums/${this.simpleName}.$HEADER_SUFFIX"
-                return@run "./enums/${
+                    return@run "$root/enums/${this.simpleName}.$HEADER_SUFFIX"
+                return@run "$root/enums/${
                     this.name.replace("::", "/").substringBeforeLast("/").toSnakeCase()
                 }/$simpleName.$HEADER_SUFFIX"
             }
 
             notSortedTypes.add(this.name)
-            return@run "./${name.replace("::", "__")}.$HEADER_SUFFIX"
+            return@run "$root/${name.replace("::", "__")}.$HEADER_SUFFIX"
         }
     }
 

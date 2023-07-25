@@ -1,9 +1,12 @@
 package com.liteldev.headeroutput
 
+import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.entity.BaseType
 import java.nio.file.Paths
 
 fun String.relativePathTo(path: String): String {
+    if (!GeneratorConfig.enableRelativePath)
+        return path
     return Paths.get(this.substringBeforeLast("/")).relativize(Paths.get(path)).toString().replace("\\", "/")
 }
 
