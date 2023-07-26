@@ -2,8 +2,10 @@ package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.ast.template.NodeType
+import com.liteldev.headeroutput.data.MemberTypeData
 import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.getTopLevelFileType
+import com.liteldev.headeroutput.isNamespace
 import com.liteldev.headeroutput.relativePathTo
 
 open class ClassType(
@@ -98,7 +100,8 @@ open class ClassType(
         // not include self, inner type, and types can forward declare
         val declareRequiredTypes = allReferences.filter {
             val notInSameFile = it.getTopLevelFileType() != this.getTopLevelFileType()
-            val canNotForwardDeclareSimply = it.name.contains("::") || ((it as? ClassType)?.isTemplateClass == true)
+            val canNotForwardDeclareSimply =
+                outerType?.isNamespace() == true || it.name.contains("::") || ((it as? ClassType)?.isTemplateClass == true)
             notInSameFile && canNotForwardDeclareSimply
         }
         declareRequiredTypes.forEach {
@@ -116,7 +119,7 @@ open class ClassType(
         includeList.remove("")
     }
 
-    fun genParents(): String {
+    private fun genParents(): String {
         if (parents.isEmpty()) {
             return ""
         }
@@ -126,7 +129,7 @@ open class ClassType(
         return sb.toString()
     }
 
-    fun genAntiReconstruction(): String {
+    private fun genAntiReconstruction(): String {
         val classType = if (this.type == TypeKind.STRUCT) "struct" else "class"
         val public = typeData.collectInstanceFunction()
             .filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
@@ -144,7 +147,7 @@ open class ClassType(
         return if (!genOperator && !genEmptyParamConstructor && !genCopyConstructor) {
             "\n"
         } else StringBuilder(
-            "\n#ifndef DISABLE_CONSTRUCTOR_PREVENTION_$fullUpperEscapeName\npublic:\n"
+            "\npublic:\n    // prevent constructor by default\n"
         ).apply {
             if (genOperator) {
                 appendLine("    $simpleName& operator=($simpleName const &) = delete;")
@@ -155,87 +158,94 @@ open class ClassType(
             if (genEmptyParamConstructor) {
                 appendLine("    $simpleName() = delete;")
             }
-            appendLine("#endif")
             appendLine()
         }.toString()
     }
 
-    fun genPublic(): String {
-        val sb = StringBuilder()
-        sb.appendLine("public:")
-        var counter = 0
-        typeData.virtual?.forEach {
-            if (it.namespace.isEmpty() || it.namespace == name) {
-                sb.appendLine(it.genFuncString(vIndex = counter))
-            }
-            counter++
-        }
-
-        if (typeData.virtualUnordered?.isNotEmpty() == true) {
-            sb.appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullUpperEscapeName}")
-            typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
-                sb.appendLine(it.genFuncString(useFakeSymbol = true))
-            }
-            sb.appendLine("#endif")
-        }
-
-        typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString())
-        }
-        typeData.publicStaticTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString())
-        }
-        if (sb.equals("public:\n")) return ""
-        sb.trim()
-        sb.appendLine()
-        return sb.toString()
-    }
-
-    fun genProtected(genFunc: Boolean = true): String {
-        if ((typeData.protectedTypes == null || typeData.protectedTypes?.isEmpty() == true) &&
-            (typeData.protectedStaticTypes == null || typeData.protectedStaticTypes?.isEmpty() == true)
+    private fun genPublic() = buildString {
+        if (typeData.publicTypes?.isEmpty() != false &&
+            typeData.publicStaticTypes?.isEmpty() != false &&
+            typeData.virtual?.isEmpty() != false &&
+            typeData.virtualUnordered?.isEmpty() != false
         ) {
             return ""
         }
-        val sb = StringBuilder()
-        if (genFunc) sb.appendLine("//protected:")
-        else sb.appendLine("protected:")
-        typeData.protectedTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable())) {
-                sb.appendLine(it.genFuncString())
+        appendLine("public:")
+        var counter = 0
+        typeData.virtual?.forEach {
+            if (it.namespace.isEmpty() || it.namespace == name) {
+                appendLine(it.genFuncString(vIndex = counter))
             }
+            counter++
         }
-        typeData.protectedStaticTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable())) {
-                sb.appendLine(it.genFuncString())
+        if (typeData.virtualUnordered?.isNotEmpty() == true) {
+            appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullUpperEscapeName}")
+            typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
+                appendLine(it.genFuncString(useFakeSymbol = true))
             }
+            appendLine("#endif")
         }
-        if (sb.equals("protected:\n") || sb.equals("//protected:\n")) return ""
-        sb.trim()
-        sb.appendLine()
-        return sb.toString()
+        typeData.publicTypes?.let(::generateFunctions)?.let(::append)
+        typeData.publicStaticTypes?.let(::generateFunctions)?.let(::append)
+        typeData.publicTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+        typeData.publicStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+        trim()
+        appendLine()
     }
 
-    fun genPrivate(genFunc: Boolean = true): String {
+    /**
+     * @param genFunc if true, generate function, otherwise generate static global variable
+     */
+    private fun genProtected(genFunc: Boolean = true) = buildString {
+        if (typeData.protectedTypes?.isEmpty() != false && typeData.protectedStaticTypes?.isEmpty() != false) {
+            return ""
+        }
+        if (genFunc) {
+            appendLine("//protected:")
+            typeData.protectedTypes?.let(::generateFunctions)?.let(::append)
+            typeData.protectedStaticTypes?.let(::generateFunctions)?.let(::append)
+        } else {
+            appendLine("protected:")
+            typeData.protectedTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+            typeData.protectedStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+        }
+        trim()
+        appendLine()
+    }
+
+    /**
+     * @param genFunc if true, generate function, otherwise generate static global variable
+     */
+    private fun genPrivate(genFunc: Boolean = true) = buildString {
         if ((typeData.privateTypes?.isEmpty() != false) && (typeData.privateStaticTypes?.isEmpty() != false)) {
             return ""
         }
+        if (genFunc) {
+            appendLine("//private:")
+            typeData.privateTypes?.let(::generateFunctions)?.let(::append)
+            typeData.privateStaticTypes?.let(::generateFunctions)?.let(::append)
+        } else {
+            appendLine("private:")
+            typeData.privateTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+            typeData.privateStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+        }
+        trim()
+        appendLine()
+    }
+
+    private fun generateFunctions(members: List<MemberTypeData>): String {
         val sb = StringBuilder()
-        if (genFunc) sb.appendLine("//private:")
-        else sb.appendLine("private:")
-        typeData.privateTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable())) {
-                sb.appendLine(it.genFuncString())
-            }
+        members.sortedBy { it.name }.filter { !it.isStaticGlobalVariable() }.forEach {
+            sb.appendLine(it.genFuncString())
         }
-        typeData.privateStaticTypes?.sortedBy { it.name }?.forEach {
-            if ((genFunc && !it.isStaticGlobalVariable()) || (!genFunc && it.isStaticGlobalVariable())) {
-                sb.appendLine(it.genFuncString())
-            }
+        return sb.toString()
+    }
+
+    private fun generateStaticGlobalVariables(members: List<MemberTypeData>): String {
+        val sb = StringBuilder()
+        members.sortedBy { it.name }.filter { it.isStaticGlobalVariable() }.forEach {
+            sb.appendLine(it.genFuncString())
         }
-        if (sb.equals("private:\n") || sb.equals("//private:\n")) return ""
-        sb.trim()
-        sb.appendLine()
         return sb.toString()
     }
 

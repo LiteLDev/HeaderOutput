@@ -72,6 +72,7 @@ data class MemberTypeData(
             ret.append(";")
 
         }
+        ret.append(" // NOLINT")
         // if (isVirtual()) ret = ret.replace(Regex("(enum ([a-zA-Z_:][a-zA-Z:_0-9]*))"), "int /*enum \$1*/")
         return ret.replace(
             Regex(
