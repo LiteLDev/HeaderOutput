@@ -93,6 +93,10 @@ data class MemberTypeData(
             Regex(
                 "class std::basic_string_view<char, ?struct std::char_traits<char ?> ?>"
             ), "std::string_view"
+        ).replace(
+            Regex(
+                "class gsl::span<(.*),\\s*-1>"
+            ), "class gsl::span<\$1>"
         )
     }
 
