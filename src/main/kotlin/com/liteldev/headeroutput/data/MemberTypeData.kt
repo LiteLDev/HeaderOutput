@@ -83,6 +83,16 @@ data class MemberTypeData(
         ).replace(
             Regex("class std::(\\w*)<(.*),\\s*(?:class|struct)\\s*std::default_delete<\\s*\\2\\s*>\\s*>"),
             "std::\$1<\$2>"
+        ).replace(
+            Regex("class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\2\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>"),
+            "std::map<\$1,\$2>"
+        ).replace(
+            Regex("class std::unordered_map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\2\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\2\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>"),
+            "std::unordered_map<\$1,\$2>"
+        ).replace(
+            Regex(
+                "class std::basic_string_view<char, ?struct std::char_traits<char ?> ?>"
+            ), "std::string_view"
         )
     }
 

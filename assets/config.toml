@@ -19,7 +19,8 @@ generation.regex = [
     "sockaddr_in6", # ws2ipdef.h
     "tm", # corecrt_wtime.h
     "_Mbstatet", # corecrt.h
-    "HWND__", # unknown
+    "HWND__", # DirectX
+    "_WINHTTP_WEB_SOCKET_BUFFER_TYPE",# winhttp.h
     "__std_win_error", # xfilesystem_abi.h
     "wspp_websocket_impl",
 ]
