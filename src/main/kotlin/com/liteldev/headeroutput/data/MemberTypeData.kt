@@ -76,6 +76,14 @@ data class MemberTypeData(
         // if (isVirtual()) ret = ret.replace(Regex("(enum ([a-zA-Z_:][a-zA-Z:_0-9]*))"), "int /*enum \$1*/")
         return ret.replace(
             Regex(
+                "unsigned __int64"
+            ), "uint64_t"
+        ).replace(
+            Regex(
+                "__int64"
+            ), "int64_t"
+        ).replace(
+            Regex(
                 "class std::basic_string<char, ?struct std::char_traits<char>, ?class std::allocator<char ?> ?>"
             ), "std::string"
         ).replace(
@@ -83,6 +91,12 @@ data class MemberTypeData(
         ).replace(
             Regex("class std::(\\w*)<(.*),\\s*(?:class|struct)\\s*std::default_delete<\\s*\\2\\s*>\\s*>"),
             "std::\$1<\$2>"
+        ).replace(
+            Regex("class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
+            "std::map<\$1,\$2>"
+        ).replace(
+            Regex("class std::unordered_map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
+            "std::unordered_map<\$1,\$2>"
         ).replace(
             Regex("class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
             "std::map<\$1,\$2>"
