@@ -273,7 +273,14 @@ open class ClassType(
     }
 
     private fun generateMembers(members: List<MemberTypeData>) = buildString {
-        members.sortedBy { it.name }.forEach {
+        fun isStatic(member: MemberTypeData) = !(member.isPtrCall() || member.isVirtual())
+        members.sortedWith { o1, o2 ->
+            if (isStatic(o1) == isStatic(o2)) {
+                o1.name.compareTo(o2.name)
+            } else {
+                if (isStatic(o1)) 1 else -1
+            }
+        }.forEach {
             appendLine(it.genFuncString())
         }
     }
