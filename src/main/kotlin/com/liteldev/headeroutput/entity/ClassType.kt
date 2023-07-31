@@ -239,7 +239,7 @@ open class ClassType(
                 return ""
             }
             appendLine("protected:")
-            append("    // NOLINTBEGIN")
+            appendLine("    // NOLINTBEGIN")
             protectedVariables.let(::generateMembers).let(::append)
             appendLine("    // NOLINTEND")
         }
