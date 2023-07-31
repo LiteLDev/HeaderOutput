@@ -12,6 +12,13 @@ open class ClassType(
     name: String, typeData: TypeData, val isTemplateClass: Boolean = false,
 ) : BaseType(name, TypeKind.CLASS, typeData) {
 
+    private val publicFunctions = arrayListOf<MemberTypeData>()
+    private val publicVariables = arrayListOf<MemberTypeData>()
+    private val protectedFunctions = arrayListOf<MemberTypeData>()
+    private val protectedVariables = arrayListOf<MemberTypeData>()
+    private val privateFunctions = arrayListOf<MemberTypeData>()
+    private val privateVariables = arrayListOf<MemberTypeData>()
+
     val parents = arrayListOf<BaseType>()
 
     // fixme: Fix in header generator
@@ -21,6 +28,25 @@ open class ClassType(
                 virtual.symbol == unordered.symbol
             }
         }
+        fun determineType(
+            members: List<MemberTypeData>?,
+            funList: MutableList<MemberTypeData>,
+            varList: MutableList<MemberTypeData>
+        ) {
+            members?.forEach { member ->
+                if (member.isStaticGlobalVariable()) {
+                    varList.add(member)
+                } else {
+                    funList.add(member)
+                }
+            }
+        }
+        determineType(typeData.publicTypes, publicFunctions, publicVariables)
+        determineType(typeData.publicStaticTypes, publicFunctions, publicVariables)
+        determineType(typeData.protectedTypes, protectedFunctions, protectedVariables)
+        determineType(typeData.protectedStaticTypes, protectedFunctions, protectedVariables)
+        determineType(typeData.privateTypes, privateFunctions, privateVariables)
+        determineType(typeData.privateStaticTypes, privateFunctions, privateVariables)
     }
 
     private fun generateInnerTypeDefine(): String {
@@ -43,10 +69,13 @@ open class ClassType(
         })
 
         val generateDeclares = buildString {
+            val inners = generateOrder.filterIsInstance<ClassType>()
+            if (inners.isEmpty()) {
+                return@buildString
+            }
             appendLine("// $simpleName inner types declare")
             appendLine("// clang-format off")
-            appendLine(generateOrder.filterIsInstance<ClassType>()
-                .joinToString(separator = "\n") { it.generateTypeDeclare() })
+            appendLine(inners.joinToString(separator = "\n") { it.generateTypeDeclare() })
             appendLine("// clang-format on\n")
         }
         val generatedTypes = buildString {
@@ -186,10 +215,8 @@ open class ClassType(
             }
             appendLine("#endif")
         }
-        typeData.publicTypes?.let(::generateFunctions)?.let(::append)
-        typeData.publicStaticTypes?.let(::generateFunctions)?.let(::append)
-        typeData.publicTypes?.let(::generateStaticGlobalVariables)?.let(::append)
-        typeData.publicStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+        publicFunctions.let(::generateMembers).let(::append)
+        publicVariables.let(::generateMembers).let(::append)
         appendLine("    // NOLINTEND")
         trim()
         appendLine()
@@ -199,21 +226,23 @@ open class ClassType(
      * @param genFunc if true, generate function, otherwise generate static global variable
      */
     private fun genProtected(genFunc: Boolean = true) = buildString {
-        if (typeData.protectedTypes?.isEmpty() != false && typeData.protectedStaticTypes?.isEmpty() != false) {
-            return ""
-        }
         if (genFunc) {
-            appendLine("//protected:")
+            if (protectedFunctions.isEmpty()) {
+                return ""
+            }
+            appendLine("    // protected:")
             appendLine("    // NOLINTBEGIN")
-            typeData.protectedTypes?.let(::generateFunctions)?.let(::append)
-            typeData.protectedStaticTypes?.let(::generateFunctions)?.let(::append)
+            protectedFunctions.let(::generateMembers).let(::append)
+            appendLine("    // NOLINTEND")
         } else {
+            if (protectedVariables.isEmpty()) {
+                return ""
+            }
             appendLine("protected:")
             append("    // NOLINTBEGIN")
-            typeData.protectedTypes?.let(::generateStaticGlobalVariables)?.let(::append)
-            typeData.protectedStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+            protectedVariables.let(::generateMembers).let(::append)
+            appendLine("    // NOLINTEND")
         }
-        appendLine("    // NOLINTEND")
         trim()
         appendLine()
     }
@@ -222,39 +251,31 @@ open class ClassType(
      * @param genFunc if true, generate function, otherwise generate static global variable
      */
     private fun genPrivate(genFunc: Boolean = true) = buildString {
-        if ((typeData.privateTypes?.isEmpty() != false) && (typeData.privateStaticTypes?.isEmpty() != false)) {
-            return ""
-        }
         if (genFunc) {
-            appendLine("//private:")
+            if (privateFunctions.isEmpty()) {
+                return ""
+            }
+            appendLine("    // private:")
             appendLine("    // NOLINTBEGIN")
-            typeData.privateTypes?.let(::generateFunctions)?.let(::append)
-            typeData.privateStaticTypes?.let(::generateFunctions)?.let(::append)
+            privateFunctions.let(::generateMembers).let(::append)
+            appendLine("    // NOLINTEND")
         } else {
+            if (privateVariables.isEmpty()) {
+                return ""
+            }
             appendLine("private:")
-            append("    // NOLINTBEGIN")
-            typeData.privateTypes?.let(::generateStaticGlobalVariables)?.let(::append)
-            typeData.privateStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+            appendLine("    // NOLINTBEGIN")
+            privateVariables.let(::generateMembers).let(::append)
+            appendLine("    // NOLINTEND")
         }
-        appendLine("    // NOLINTEND")
         trim()
         appendLine()
     }
 
-    private fun generateFunctions(members: List<MemberTypeData>): String {
-        val sb = StringBuilder()
-        members.sortedBy { it.name }.filter { !it.isStaticGlobalVariable() }.forEach {
-            sb.appendLine(it.genFuncString())
+    private fun generateMembers(members: List<MemberTypeData>) = buildString {
+        members.sortedBy { it.name }.forEach {
+            appendLine(it.genFuncString())
         }
-        return sb.toString()
-    }
-
-    private fun generateStaticGlobalVariables(members: List<MemberTypeData>): String {
-        val sb = StringBuilder()
-        members.sortedBy { it.name }.filter { it.isStaticGlobalVariable() }.forEach {
-            sb.appendLine(it.genFuncString())
-        }
-        return sb.toString()
     }
 
     private fun getTemplateDefine(): String? {
