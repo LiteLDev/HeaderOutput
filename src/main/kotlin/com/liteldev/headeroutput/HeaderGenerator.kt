@@ -18,19 +18,18 @@ object HeaderGenerator {
         logger.info { "Generating header files" }
         File(GeneratorConfig.generatePath).mkdirs()
         createPredefineFile()
+        var lastLine = ""
         TypeManager.nestingMap.forEach { (name, baseType) ->
+            print("\r${" ".repeat(lastLine.length)}\r")
+            lastLine = "Generating ${name}..."
+            print(lastLine)
             generate(baseType)
         }
-        // clear last line first
-        print("\r${" ".repeat(50)}\r")
+        print("\r${" ".repeat(lastLine.length)}\r")
         logger.info { "Generating header files done" }
     }
 
     private fun generate(type: BaseType) {
-        // clear last line first
-        print("\r${" ".repeat(50)}\r")
-        print("Generating ${type.name}...")
-
         val path = type.path
         if (pathMap.containsKey(path)) {
             pathMap[path]!!.add(type)
