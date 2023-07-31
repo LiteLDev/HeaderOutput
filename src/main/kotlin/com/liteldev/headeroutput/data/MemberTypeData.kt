@@ -1,6 +1,7 @@
 package com.liteldev.headeroutput.data
 
 import com.liteldev.headeroutput.appendSpace
+import com.liteldev.headeroutput.config.GeneratorConfig
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -32,17 +33,17 @@ data class MemberTypeData(
                 "__unk_destructor_${vIndex}"
             else this.symbol
 
-        val ret = StringBuilder()
-        ret.appendSpace(START_BLANK_SPACE).append("/**\n")
-        if (isVirtual() && !useFakeSymbol) ret.appendSpace(START_BLANK_SPACE + 1).append("* @vftbl $vIndex\n")
+        val sb = StringBuilder()
+        sb.appendSpace(START_BLANK_SPACE).append("/**\n")
+        if (isVirtual() && !useFakeSymbol) sb.appendSpace(START_BLANK_SPACE + 1).append("* @vftbl $vIndex\n")
         if (symbol.isNotEmpty()) {
-            ret.appendSpace(START_BLANK_SPACE + 1).append("* @symbol ${symbol.replace("@", "\\@")}\n")
+            sb.appendSpace(START_BLANK_SPACE + 1).append("* @symbol ${symbol.replace("@", "\\@")}\n")
         }
-        ret.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
+        sb.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
 
-        ret.appendSpace(START_BLANK_SPACE)
+        sb.appendSpace(START_BLANK_SPACE)
         if (isStaticGlobalVariable()) {
-            ret.append(
+            sb.append(
                 "MCAPI ${if (!namespace) "static " else "extern "}${
                     valType.Name?.replace(
                         "enum ",
@@ -57,67 +58,24 @@ data class MemberTypeData(
             params?.forEach { paramsString = "$paramsString${it.Name}, " }
             if (paramsString != "") paramsString = paramsString.substring(0, paramsString.length - 2)
 
-            ret.append(run {
+            sb.append(run {
                 if (isVirtual())
                     if (useFakeSymbol) "MCVAPI "
                     else "virtual "
                 else
                     "MCAPI "
             })
-            if (!(isPtrCall() || isVirtual() || namespace)) ret.append("static ")
-            if (valType.Name != "") ret.append("${valType.Name?.replace("enum ", "enum class ")} ")
-            ret.append("$name(${paramsString.replace("enum ", "enum class ")})")
-            if (isConst()) ret.append(" const")
-            if (isPureCall()) ret.append(" = 0")
-            ret.append(";")
+            if (!(isPtrCall() || isVirtual() || namespace)) sb.append("static ")
+            if (valType.Name != "") sb.append("${valType.Name?.replace("enum ", "enum class ")} ")
+            sb.append("$name(${paramsString.replace("enum ", "enum class ")})")
+            if (isConst()) sb.append(" const")
+            if (isPureCall()) sb.append(" = 0")
+            sb.append(";")
 
         }
-        ret.append(" // NOLINT")
-        // if (isVirtual()) ret = ret.replace(Regex("(enum ([a-zA-Z_:][a-zA-Z:_0-9]*))"), "int /*enum \$1*/")
-        return ret.replace(
-            Regex(
-                "unsigned __int64"
-            ), "uint64_t"
-        ).replace(
-            Regex(
-                "__int64"
-            ), "int64_t"
-        ).replace(
-            Regex(
-                "class std::basic_string<char, ?struct std::char_traits<char>, ?class std::allocator<char ?> ?>"
-            ), "std::string"
-        ).replace(
-            Regex("class std::(\\w*)<(.*),\\s*(?:class|struct)\\s*std::allocator<\\s*\\2\\s*>\\s*>"), "std::\$1<\$2>"
-        ).replace(
-            Regex("class std::(\\w*)<(.*),\\s*(?:class|struct)\\s*std::default_delete<\\s*\\2\\s*>\\s*>"),
-            "std::\$1<\$2>"
-        ).replace(
-            Regex("class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
-            "std::map<\$1,\$2>"
-        ).replace(
-            Regex("class std::unordered_map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
-            "std::unordered_map<\$1,\$2>"
-        ).replace(
-            Regex("class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
-            "std::map<\$1,\$2>"
-        ).replace(
-            Regex("class std::unordered_map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>"),
-            "std::unordered_map<\$1,\$2>"
-        ).replace(
-            Regex("class std::set<(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*\\1\\s*>\\s*>"),
-            "std::set<\$1>"
-        ).replace(
-            Regex("class std::unordered_set<(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*\\1\\s*>\\s*>"),
-            "std::unordered_set<\$1>"
-        ).replace(
-            Regex(
-                "class std::basic_string_view<char, ?struct std::char_traits<char ?> ?>"
-            ), "std::string_view"
-        ).replace(
-            Regex(
-                "class gsl::span<(.*),\\s*-1>"
-            ), "class gsl::span<\$1>"
-        )
+        var sbString = sb.toString()
+        GeneratorConfig.replacementRegex.forEach { sbString = sbString.replace(it.first, it.second) }
+        return sbString
     }
 
     fun isConstructor() = symbolType == SymbolNodeType.Constructor

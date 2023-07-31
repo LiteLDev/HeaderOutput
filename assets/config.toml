@@ -2,9 +2,27 @@
 rootPath = "mc"
 enableRelativePath = false
 
+[replacement]
+
+regex = [
+    { regex = "unsigned __int64", to = "uint64_t" },
+    { regex = "__int64", to = "int64_" },
+    { regex = "class std::basic_string<char, ?struct std::char_traits<char>, ?class std::allocator<char ?> ?>", to = "std::string" },
+    { regex = "class std::(\\w*)<(.*),\\s*(?:class|struct)\\s*std::allocator<\\s*\\2\\s*>\\s*>", to = "std::$1<$2>" },
+    { regex = "class std::(\\w*)<(.*),\\s*(?:class|struct)\\s*std::default_delete<\\s*\\2\\s*>\\s*>", to = "std::$1<$2>" },
+    { regex = "class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>", to = "std::map<$1,$2>" },
+    { regex = "class std::unordered_map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>", to = "std::unordered_map<$1,$2>" },
+    { regex = "class std::map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>", to = "std::map<$1,$2>" },
+    { regex = "class std::unordered_map<(.*),\\s*(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*(?:class|struct)\\s*std::pair<\\s*\\1\\s*const\\s*,\\s*\\2\\s*>\\s*>\\s*>", to = "std::unordered_map<$1,$2>" },
+    { regex = "class std::set<(.*),\\s*(?:class|struct)\\s*std::less<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*\\1\\s*>\\s*>", to = "std::set<$1>" },
+    { regex = "class std::unordered_set<(.*),\\s*(?:class|struct)\\s*std::hash<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::equal_to<\\s*\\1\\s*>,\\s*(?:class|struct)\\s*std::allocator<\\s*\\1\\s*>\\s*>", to = "std::unordered_set<$1>" },
+    { regex = "class std::basic_string_view<char, ?struct std::char_traits<char ?> ?>", to = "std::string_view" },
+    { regex = "class gsl::span<(.*),\\s*-1>", to = "class gsl::span<$1>" },
+]
+
 [exclusion]
 
-generation.regex = [
+regex = [
     "^$",
     "^struct .*$",
     "^unity_.*$", # preview
@@ -20,17 +38,9 @@ generation.regex = [
     "tm", # corecrt_wtime.h
     "_Mbstatet", # corecrt.h
     "HWND__", # DirectX
-    "_WINHTTP_WEB_SOCKET_BUFFER_TYPE",# winhttp.h
+    "_WINHTTP_WEB_SOCKET_BUFFER_TYPE", # winhttp.h
     "__std_win_error", # xfilesystem_abi.h
     "wspp_websocket_impl",
-]
-
-inclusion.regex = ["^(std)$"]
-
-[inclusin]
-
-rules = [
-
 ]
 
 [sort]

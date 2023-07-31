@@ -7,13 +7,16 @@ class NamespaceType(
     name: String, typeData: TypeData
 ) : BaseType(name, TypeKind.NAMESPACE, typeData) {
 
-    fun genPublic(): String {
-        val sb = StringBuilder()
-        typeData.publicTypes?.sortedBy { it.name }?.forEach {
-            sb.appendLine(it.genFuncString(namespace = true))
+    fun genPublic() = buildString {
+        if (typeData.publicTypes?.isEmpty() != false) {
+            return@buildString
         }
-        sb.appendLine()
-        return sb.toString()
+        appendLine("// NOLINTBEGIN")
+        typeData.publicTypes?.sortedBy { it.name }?.forEach {
+            appendLine(it.genFuncString(namespace = true))
+        }
+        appendLine("// NOLINTEND")
+        appendLine()
     }
 
     override fun generateTypeDefine(): String {

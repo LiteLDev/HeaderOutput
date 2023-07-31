@@ -171,6 +171,7 @@ open class ClassType(
             return ""
         }
         appendLine("public:")
+        appendLine("    // NOLINTBEGIN")
         var counter = 0
         typeData.virtual?.forEach {
             if (it.namespace.isEmpty() || it.namespace == name) {
@@ -189,6 +190,7 @@ open class ClassType(
         typeData.publicStaticTypes?.let(::generateFunctions)?.let(::append)
         typeData.publicTypes?.let(::generateStaticGlobalVariables)?.let(::append)
         typeData.publicStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
+        appendLine("    // NOLINTEND")
         trim()
         appendLine()
     }
@@ -202,13 +204,16 @@ open class ClassType(
         }
         if (genFunc) {
             appendLine("//protected:")
+            appendLine("    // NOLINTBEGIN")
             typeData.protectedTypes?.let(::generateFunctions)?.let(::append)
             typeData.protectedStaticTypes?.let(::generateFunctions)?.let(::append)
         } else {
             appendLine("protected:")
+            append("    // NOLINTBEGIN")
             typeData.protectedTypes?.let(::generateStaticGlobalVariables)?.let(::append)
             typeData.protectedStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
         }
+        appendLine("    // NOLINTEND")
         trim()
         appendLine()
     }
@@ -222,13 +227,16 @@ open class ClassType(
         }
         if (genFunc) {
             appendLine("//private:")
+            appendLine("    // NOLINTBEGIN")
             typeData.privateTypes?.let(::generateFunctions)?.let(::append)
             typeData.privateStaticTypes?.let(::generateFunctions)?.let(::append)
         } else {
             appendLine("private:")
+            append("    // NOLINTBEGIN")
             typeData.privateTypes?.let(::generateStaticGlobalVariables)?.let(::append)
             typeData.privateStaticTypes?.let(::generateStaticGlobalVariables)?.let(::append)
         }
+        appendLine("    // NOLINTEND")
         trim()
         appendLine()
     }

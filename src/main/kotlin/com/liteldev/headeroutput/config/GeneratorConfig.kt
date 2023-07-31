@@ -22,9 +22,9 @@ object GeneratorConfig {
     lateinit var configPath: String
     lateinit var declareMapPath: String
     lateinit var predefineHeaderPath: String
-    lateinit var generationExcludeRegexList: List<String>
-    lateinit var inclusionExcludeRegexList: List<String>
+    lateinit var replacementRegex: List<Pair<Regex, String>>
 
+    private lateinit var excludeRegexList: List<Regex>
     private lateinit var generatorConfigData: OutputConfig
 
 
@@ -43,12 +43,12 @@ object GeneratorConfig {
         }
         enableRelativePath = generatorConfigData.config.enableRelativePath
         rootPath = generatorConfigData.config.rootPath
-        generationExcludeRegexList = generatorConfigData.exclusion.generation.regex
-        inclusionExcludeRegexList = generatorConfigData.exclusion.inclusion.regex
+        excludeRegexList = generatorConfigData.exclusion.regex.map { it.toRegex() }
+        replacementRegex = generatorConfigData.replacement.regex.map { it.regex.toRegex() to it.to }
     }
 
     fun isExcludedFromGeneration(name: String): Boolean {
-        return generationExcludeRegexList.any { name.matches(it.toRegex()) }
+        return excludeRegexList.any { name.matches(it) }
     }
 
     fun getSortRules() = generatorConfigData.sort
