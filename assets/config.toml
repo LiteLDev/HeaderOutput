@@ -13,7 +13,7 @@ regex = [
     { regex = "std::chrono::duration<int64_t, ?std::ratio<1, ?1000> ?>", to = "std::chrono::milliseconds" },
     { regex = "std::chrono::duration<int64_t, ?std::ratio<1, ?1> ?>", to = "std::chrono::seconds" },
     { regex = "std::chrono::duration<int, ?std::ratio<60, ?1> ?>", to = "std::chrono::minutes" },
-    { regex = "std::chrono::time_point<std::chrono::steady_clock, ?std::chrono::nanoseconds>", to = "std::chrono::time_point<std::chrono::steady_clock>" },
+    { regex = "std::chrono::time_point<std::chrono::steady_clock, ?std::chrono::nanoseconds>", to = "std::chrono::steady_clock::time_point" },
     { regex = "std::basic_string<char, ?std::char_traits<char>, ?std::allocator<char ?> ?>", to = "std::string" },
     { regex = "std::basic_string_view<char, ?std::char_traits<char ?> ?>", to = "std::string_view" },
     { regex = "std::(\\w*)<(.*),\\s*std::default_delete<\\s*\\2\\s*>\\s*>", to = "std::$1<$2>" },
