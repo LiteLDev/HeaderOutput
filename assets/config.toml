@@ -195,7 +195,7 @@ regex = [
     { regex = "^moodycamel.*", dst = "external/concurrentqueue", override = false },
     { regex = "^Im[A-Z].*", dst = "external/imgui", override = false },
     { regex = "^OS::.*", dst = "external/lib_http_client", override = false },
-    { regex = "^cg::.*", dst = "deps/CoreGraphics/common", override = false },
+    { regex = "^cg::.*", dst = "deps/core_graphics/common", override = false },
     { regex = "^SFAT::.*", dst = "external/sfat", override = false },
     { regex = "^nonstd::.*", dst = "external/nonstd", override = false },
     { regex = "^qrcodegen::.*", dst = "external/qrcodegen", override = false },
