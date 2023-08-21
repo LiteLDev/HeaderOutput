@@ -140,7 +140,7 @@ regex = [
     { regex = "^VanillaStates.*", dst = "world/level/block/utils", override = false },
     { regex = "^TreeHelper.*", dst = "world/level/levelgen/feature/helpers", override = false },
     { regex = "^SplitBlockUtils.*", dst = "world/level/block/utils", override = false },
-    { regex = ".*BlockState.*", dst = "world/level/block/utils", override = false },
+    { regex = ".*BlockState.*", dst = "world/level/block/states", override = false },
     { regex = "^Sculk.*", dst = "world/level/block/utils", override = false },
     { regex = "^PackCapabilities.*", dst = "resources", override = false },
     { regex = "^Resource.*", dst = "resources", override = false },
