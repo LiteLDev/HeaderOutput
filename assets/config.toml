@@ -35,21 +35,21 @@ regex = [
 regex = [
     "^$",
     "^struct .*$",
-    "^unity_.*$", # preview
+    "^unity_.*$",                                                           # preview
     "^class .*$",
     ".*(@|\\s|<).*",
     "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt).*",
-    "^Concurrency(?:::.*)*$", # microsft Concurrency, no usage. pplinterface.h
-    "_WSABUF", # ws2def.h
-    "addrinfo", # ws2def.h
-    "sockaddr", # ws2def.h
-    "sockaddr_in", # ws2def.h
-    "sockaddr_in6", # ws2ipdef.h
-    "tm", # corecrt_wtime.h
-    "_Mbstatet", # corecrt.h
-    "HWND__", # DirectX
-    "_WINHTTP_WEB_SOCKET_BUFFER_TYPE", # winhttp.h
-    "__std_win_error", # xfilesystem_abi.h
+    "^Concurrency(?:::.*)*$",                                               # microsft Concurrency, no usage. pplinterface.h
+    "_WSABUF",                                                              # ws2def.h
+    "addrinfo",                                                             # ws2def.h
+    "sockaddr",                                                             # ws2def.h
+    "sockaddr_in",                                                          # ws2def.h
+    "sockaddr_in6",                                                         # ws2ipdef.h
+    "tm",                                                                   # corecrt_wtime.h
+    "_Mbstatet",                                                            # corecrt.h
+    "HWND__",                                                               # DirectX
+    "_WINHTTP_WEB_SOCKET_BUFFER_TYPE",                                      # winhttp.h
+    "__std_win_error",                                                      # xfilesystem_abi.h
     "wspp_websocket_impl",
 ]
 
@@ -68,6 +68,7 @@ parent = [
 
 regex = [
     { regex = ".*RakNet.*", dst = "deps/raknet", override = false },
+    { regex = ".*DataStructures.*", dst = "deps/raknet/data_structures", override = false },
     { regex = "^Has.*Filter$", dst = "world/actor/selectors", override = false },
     { regex = "^CameraPresetsInternals::.*", dst = "world/actor/common", override = false },
     { regex = "^Crypto::Hash::.*", dst = "deps/crypto/hash", override = false },
