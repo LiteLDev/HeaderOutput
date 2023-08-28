@@ -8,7 +8,6 @@ import com.liteldev.headeroutput.data.TypeData
 import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.ClassType
 import com.liteldev.headeroutput.entity.NamespaceType
-import com.liteldev.headeroutput.entity.StructType
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
@@ -131,7 +130,7 @@ object HeaderOutput {
                 TypeManager.addType(
                     typeName,
                     when {
-                        isStruct(typeName) -> StructType(typeName, type)
+                        isStruct(typeName) -> ClassType(typeName, type, isStructType = true)
                         isClass(typeName) -> ClassType(typeName, type)
                         isNameSpace(typeName, type) -> NamespaceType(typeName, type)
                         else -> {

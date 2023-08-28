@@ -126,8 +126,14 @@ object TypeManager {
                 ClassType(name, TypeData.empty(), template.contains(name))
             }
         } else when (type) {
-            TypeKind.CLASS -> ClassType(name, TypeData.empty(), template.contains(name))
-            TypeKind.STRUCT -> StructType(name, TypeData.empty(), template.contains(name))
+            TypeKind.CLASS -> ClassType(name, TypeData.empty(), isTemplateClass = template.contains(name))
+            TypeKind.STRUCT -> ClassType(
+                name,
+                TypeData.empty(),
+                isStructType = true,
+                isTemplateClass = template.contains(name)
+            )
+
             TypeKind.ENUM -> EnumType(name)
             TypeKind.NAMESPACE -> NamespaceType(name, TypeData.empty())
             else -> throw IllegalArgumentException("type $type is not supported")

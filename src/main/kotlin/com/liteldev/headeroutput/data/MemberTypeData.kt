@@ -47,7 +47,7 @@ data class MemberTypeData(
                 "MCAPI ${if (!namespace) "static " else "extern "}${
                     valType.Name?.replace(
                         "enum ",
-                        "enum class "
+                        "::"
                     )
                 } $name;"
             )

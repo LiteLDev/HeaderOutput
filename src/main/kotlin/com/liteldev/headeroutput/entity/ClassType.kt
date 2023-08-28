@@ -1,15 +1,12 @@
 package com.liteldev.headeroutput.entity
 
-import com.liteldev.headeroutput.TypeManager
+import com.liteldev.headeroutput.*
 import com.liteldev.headeroutput.ast.template.NodeType
 import com.liteldev.headeroutput.data.MemberTypeData
 import com.liteldev.headeroutput.data.TypeData
-import com.liteldev.headeroutput.getTopLevelFileType
-import com.liteldev.headeroutput.isNamespace
-import com.liteldev.headeroutput.relativePathTo
 
 open class ClassType(
-    name: String, typeData: TypeData, val isTemplateClass: Boolean = false,
+    name: String, typeData: TypeData, val isTemplateClass: Boolean = false, isStructType: Boolean = false,
 ) : BaseType(name, TypeKind.CLASS, typeData) {
 
     private val publicFunctions = arrayListOf<MemberTypeData>()
@@ -23,6 +20,9 @@ open class ClassType(
 
     // fixme: Fix in header generator
     init {
+        if (isStructType) {
+            this.type = TypeKind.STRUCT
+        }
         typeData.virtual?.forEach { virtual ->
             typeData.virtualUnordered?.removeIf { unordered ->
                 virtual.symbol == unordered.symbol
@@ -129,12 +129,14 @@ open class ClassType(
         // not include self, inner type, and types can forward declare
         val declareRequiredTypes = allReferences.filter {
             val notInSameFile = it.getTopLevelFileType() != this.getTopLevelFileType()
-            val canNotForwardDeclareSimply =
-                outerType?.isNamespace() == true || it.name.contains("::") || ((it as? ClassType)?.isTemplateClass == true)
+            val canNotForwardDeclareSimply = outerType?.isNamespace() == true
+                    || it.name.contains("::")
+                    || ((it as? ClassType)?.isTemplateClass == true)
+                    || it.isEnum()
             notInSameFile && canNotForwardDeclareSimply
         }
         declareRequiredTypes.forEach {
-            if (it.outerType is ClassType || (it as? ClassType)?.isTemplateClass == true) {
+            if (it.isEnum() || it.outerType is ClassType || (it as? ClassType)?.isTemplateClass == true) {
                 this.path.relativePathTo(it.path).let(includeList::add)
             } else {
                 it.generateTypeDeclare().let(forwardDeclareList::add)
