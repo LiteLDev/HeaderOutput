@@ -58,11 +58,11 @@ open class ClassType(
             if (o1 is EnumType || o2 is EnumType) {
                 return@Comparator if (o1 is EnumType) -1 else 1
             }
-            if (o1.allReferences.any { it in o2.allInnerTypes }) {
-                return@Comparator 1
-            }
-            if (o2.allReferences.any { it in o1.allInnerTypes }) {
+            if (o1 in o2.allReferences || o1.allInnerTypes.any { it in o2.allReferences }) {
                 return@Comparator -1
+            }
+            if (o2 in o1.allReferences || o2.allInnerTypes.any { it in o1.allReferences }) {
+                return@Comparator 1
             }
 
             return@Comparator o1.name.compareTo(o2.name)

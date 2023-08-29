@@ -52,8 +52,7 @@ data class TypeData(
 
     fun collectReferencedTypes(): Map<String, BaseType.TypeKind> {
         return collectAllFunction().flatMap { memberType ->
-            (memberType.params?.mapNotNull { it.Name }
-                ?: emptyList()) + listOfNotNull(memberType.valType.Name) + listOfNotNull(parentTypes?.getOrNull(0))
+            (memberType.params?.mapNotNull { it.Name } ?: emptyList()) + listOfNotNull(memberType.valType.Name)
         }.flatMap(::matchTypes).toMap()
     }
 

@@ -45,6 +45,7 @@ object TypeManager {
         }
         classTypeNames.addAll(HeaderOutput.classNameList)
         classTypeNames.addAll(HeaderOutput.structNameList)
+        typeDataSet.mapNotNull { it.parentTypes }.flatten().let(classTypeNames::addAll)
         waitingForConstruct.forEach { (name, kind) ->
             if (!hasType(name)) {
                 createDummyClass(name, kind)
@@ -54,9 +55,9 @@ object TypeManager {
 
     fun initParents() {
         logger.info { "Initializing parents" }
-        typeMap.values.filter { it.isClass() }.forEach { type ->
-            type as ClassType
-            type.typeData.parentTypes?.getOrNull(0)?.run { typeMap[this] }?.let { type.parents.add(it) }
+        typeMap.values.filterIsInstance<ClassType>().forEach { type ->
+            type.typeData.parentTypes?.getOrNull(0)?.run { typeMap[this] }
+                ?.let { type.parents.add(it); type.referenceTypes.add(it) }
             /*
             fixme: Fix in header generator: recursive parent
             type.typeData.parentTypes?.forEach { parent ->
@@ -68,10 +69,7 @@ object TypeManager {
 
     fun initReferences() {
         logger.info { "Initializing references" }
-        // copy to avoid ConcurrentModificationException due to enum is being added in `collectSelfReferencedType`
-        typeMap.values.toMutableSet().forEach { type ->
-            type.collectSelfReferencedType()
-        }
+        typeMap.values.forEach(BaseType::collectSelfReferencedType)
     }
 
     fun initInclusionList() {

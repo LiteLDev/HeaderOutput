@@ -81,7 +81,7 @@ abstract class BaseType(
     abstract fun generateTypeDefine(): String
 
     open fun generateTypeDeclare(): String {
-        TODO("not implemented")
+        error("Type $name can not generate declare, current type: ${this.javaClass.simpleName}")
     }
 
     open fun initIncludeAndForwardDeclareList() {}

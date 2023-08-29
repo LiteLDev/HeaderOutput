@@ -16,6 +16,17 @@ object HeaderGenerator {
 
     fun generate() {
         logger.info { "Generating header files" }
+        // ask to delete all files in generate path
+        val generatePath = File(GeneratorConfig.generatePath)
+        if (generatePath.exists()) {
+            print("Delete all files in ${generatePath.canonicalPath}? (y/n): ")
+            val input = readlnOrNull()
+            if (input == "y") {
+                generatePath.deleteRecursively()
+            } else {
+                logger.info { "Skip deleting files" }
+            }
+        }
         File(GeneratorConfig.generatePath).mkdirs()
         createPredefineFile()
         var lastLine = ""

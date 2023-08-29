@@ -38,8 +38,8 @@ object HeaderOutput {
 
         TypeManager.constructNotExistedType()
         TypeManager.initParents()
-        TypeManager.initReferences()
         TypeManager.initNestingMap()
+        TypeManager.initReferences()
         TypeManager.initInclusionList()
 
         HeaderGenerator.generate()
