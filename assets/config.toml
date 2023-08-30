@@ -5,8 +5,15 @@ enableRelativePath = false
 [replacement]
 
 regex = [
-    { regex = "unsigned __int64", to = "uint64_t" },
-    { regex = "__int64", to = "int64_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned char(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "uint8_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned short(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "uint16_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned int(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "uint32_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned __int64(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "uint64_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)signed char(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "int8_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)short(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "int16_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)int(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "int32_t" },
+    { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)__int64(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "int64_t" },
+    { regex = "class AutomaticID<class Dimension, ?int32_t>", to = "DimensionType" },
     { regex = "(?:enum\\sclass|class|struct)\\s*std::", to = "std::" },
     { regex = "std::chrono::duration<int64_t, ?std::ratio<1, ?1000000000> ?>", to = "std::chrono::nanoseconds" },
     { regex = "std::chrono::duration<int64_t, ?std::ratio<1, ?1000000> ?>", to = "std::chrono::microseconds" },
@@ -109,6 +116,7 @@ regex = [
     { regex = "^PlayerCapabilities.*", dst = "config", override = false },
     { regex = ".*Container.*", dst = "world/containers", override = false },
     { regex = ".*[Nn]pc.*", dst = "world/actor/npc", override = false },
+    { regex = "^Command.*Flag$", dst = "server/commands/flags", override = false },
     { regex = ".*Flag$", dst = "entity/flags", override = false },
     { regex = ".*Test$", dst = "world/filters", override = false },
     { regex = ".*System.*", dst = "world/systems", override = false },
