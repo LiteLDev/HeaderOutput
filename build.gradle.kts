@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "com.liteldev"
-version = "1.0-SNAPSHOT"
+version = "1.1"
 val mainName = "com.liteldev.headeroutput.HeaderOutput"
 
 application {
