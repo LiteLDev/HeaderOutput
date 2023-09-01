@@ -40,27 +40,14 @@ data class MemberTypeData(
                 append("MCAPI ")
                 if (namespace) append("extern ") else append("static ")
                 if (valType.name.isBlank()) valType.name = "auto"
-                else typeMatchRegex.findAll(valType.name).forEach { matchResult ->
-                    val name = matchResult.groupValues[1]
-                    if (TypeManager.hasType(name))
-                        valType.name = valType.name.replace("enum $name", "::$name")
-                }
+                else valType.name = valType.name.replaceEnumType()
                 append("${valType.name} $name;")
             } else {
                 if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.name}"))
                     valType.name = ""
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
-                else typeMatchRegex.findAll(valType.name).forEach { matchResult ->
-                    val name = matchResult.groupValues[1]
-                    if (TypeManager.hasType(name))
-                        valType.name = valType.name.replace("enum $name", "::$name")
-                }
-                var paramsString = params.joinToString(", ") { it.name }
-                typeMatchRegex.findAll(paramsString).forEach { matchResult ->
-                    val name = matchResult.groupValues[1]
-                    if (TypeManager.hasType(name))
-                        paramsString = paramsString.replace("enum $name", "::$name")
-                }
+                else valType.name = valType.name.replaceEnumType()
+                val paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
                 if (isVirtual()) if (useFakeSymbol) append("MCVAPI ") else append("virtual ")
                 else append("MCAPI ")
                 if (!(isPtrCall() || isVirtual() || namespace)) append("static ")
@@ -115,5 +102,14 @@ data class MemberTypeData(
         const val START_BLANK_SPACE = 4
 
         val typeMatchRegex = Regex("enum\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
+        fun String.replaceEnumType(): String {
+            var result = this
+            typeMatchRegex.findAll(this).forEach { matchResult ->
+                val name = matchResult.groupValues[1]
+                result = if (TypeManager.hasType(name)) result.replace("enum $name", "::$name")
+                else result.replace("enum $name", "enum class $name")
+            }
+            return result
+        }
     }
 }
