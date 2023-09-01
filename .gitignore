@@ -23,6 +23,9 @@ gradle-app.setting
 # IDEA
 .idea
 
+# vscode
+.vscode
+
 # HeaderOutput files
 /header/
 /originalData*.json
