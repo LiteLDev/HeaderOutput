@@ -66,8 +66,8 @@ data class MemberTypeData(
                     "MCAPI "
             })
             if (!(isPtrCall() || isVirtual() || namespace)) sb.append("static ")
-            if (valType.Name != "") sb.append("${valType.Name?.replace("enum ", "enum class ")} ")
-            sb.append("$name(${paramsString.replace("enum ", "enum class ")})")
+            if (valType.Name != "") sb.append("${valType.Name?.replace("enum ", "::")} ")
+            sb.append("$name(${paramsString.replace("enum ", "::")})")
             if (isConst()) sb.append(" const")
             if (isPureCall()) sb.append(" = 0")
             sb.append(";")
