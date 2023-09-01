@@ -2,10 +2,7 @@ package com.liteldev.headeroutput
 
 import com.liteldev.headeroutput.TypeManager.typeDataMap
 import com.liteldev.headeroutput.config.GeneratorConfig
-import com.liteldev.headeroutput.data.MemberTypeData
-import com.liteldev.headeroutput.data.StorageClassType
-import com.liteldev.headeroutput.data.SymbolNodeType
-import com.liteldev.headeroutput.data.TypeData
+import com.liteldev.headeroutput.data.*
 import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.ClassType
 import com.liteldev.headeroutput.entity.NamespaceType
@@ -59,6 +56,7 @@ object HeaderOutput {
 
     private fun readCommandLineArgs(args: Array<String>): Boolean {
         val parser = ArgParser("HeaderOutput")
+        val alwaysTrue by parser.option(ArgType.Boolean, "y", "y", "Always true").default(true)
         val configPath by parser.option(ArgType.String, "config", "c", "The config file path").default("./config.toml")
         val declareMapFile by parser.option(ArgType.String, "declare-map", "d", "The declare map file path")
             .default("./declareMap.json")
@@ -69,6 +67,7 @@ object HeaderOutput {
         val jsonPath by parser.option(ArgType.String, "input", "i", "The original data json file path")
             .default("./originalData.json")
         parser.parse(args)
+        GeneratorConfig.alwaysTrue = alwaysTrue
         GeneratorConfig.configPath = configPath
         GeneratorConfig.generatePath = generatePath
         GeneratorConfig.jsonPath = jsonPath
@@ -103,6 +102,10 @@ object HeaderOutput {
         // ask to delete all files in generate path
         val generatePath = File(GeneratorConfig.generatePath)
         if (generatePath.exists()) {
+            if (GeneratorConfig.alwaysTrue) {
+                generatePath.deleteRecursively()
+                return
+            }
             print("Delete all files in ${generatePath.canonicalPath}? (y/n): ")
             val input = readlnOrNull()
             if (input == "y") {
@@ -125,15 +128,16 @@ object HeaderOutput {
             var counter = 0
             type.virtual.forEach {
                 // 对于没有名字的虚函数，将其标记为未知函数，并且将其名字设置为 __unk_vfn_0, __unk_vfn_1, ...
-                if (it.name == "" && !it.isUnknownFunction())
-                    it.symbolType = SymbolNodeType.Unknown
+                if (it.name.isEmpty()) it.symbolType = SymbolNodeType.Unknown
                 if (it.isUnknownFunction()) {
                     it.storageClass = StorageClassType.Virtual
                     it.addFlag(MemberTypeData.FLAG_PTR_CALL)
-                    it.name = "void __unk_vfn_${counter}"
+                    it.name = "__unk_vfn_${counter}"
+                    it.symbol = "__unk_vfn_${counter}"
+                    it.valType.name = "void"
+                    it.valType.kind = VarSymbolKind.PrimitiveType
                 }
                 counter++
-
             }
         }
     }

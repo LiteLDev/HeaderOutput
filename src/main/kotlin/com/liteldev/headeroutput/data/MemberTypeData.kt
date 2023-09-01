@@ -18,53 +18,46 @@ data class MemberTypeData(
     @SerialName("flag_bits") var flags: Int, // 1
 
     @SerialName("rva") val rva: Long, // 13417264
-    @SerialName("symbol") val symbol: String, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
+    @SerialName("symbol") var symbol: String, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
     @SerialName("fake_symbol") val fakeSymbol: String?, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
 ) {
 
     fun genFuncString(
         namespace: Boolean = false,
         useFakeSymbol: Boolean = false,
-        vIndex: Int = -1
+        vIndex: Int? = null
     ): String {
-        val symbol =
-            if (this.isUnknownFunction())
-                "__unk_vfn_${vIndex}"
-            else if (this.isVirtual() && this.isDestructor())
-                "__unk_destructor_${vIndex}"
-            else this.symbol
-
-        val sb = StringBuilder()
-        sb.appendSpace(START_BLANK_SPACE).append("/**\n")
-        if (isVirtual() && !useFakeSymbol) sb.appendSpace(START_BLANK_SPACE + 1).append("* @vftbl $vIndex\n")
-        if (symbol.isNotEmpty()) {
-            sb.appendSpace(START_BLANK_SPACE + 1).append("* @symbol ${symbol.replace("@", "\\@")}\n")
+        fun StringBuilder.appendIndented(str: String) = appendSpace(START_BLANK_SPACE).append(str).append("\n")
+        var origin = buildString {
+            appendIndented("/**")
+            if (vIndex != null) appendIndented(" * @vIndex $vIndex")
+            if (symbol.isNotEmpty()) appendIndented(" * @symbol ${symbol.replace("@", "\\@")}")
+            appendIndented(" */")
+            appendSpace(START_BLANK_SPACE)
+            if (isStaticGlobalVariable()) {
+                append("MCAPI ")
+                if (namespace) append("extern ") else append("static ")
+                if (valType.name.isBlank()) valType.name = "auto" else valType.name =
+                    valType.name.replace("enum ", "::")
+                append("${valType.name} $name;")
+            } else {
+                if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.name}"))
+                    valType.name = ""
+                else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
+                else valType.name = valType.name.replace("enum ", "::")
+                val paramsString = params.joinToString(", ") { it.name }.replace("enum ", "::")
+                if (isVirtual()) if (useFakeSymbol) append("MCVAPI ") else append("virtual ")
+                else append("MCAPI ")
+                if (!(isPtrCall() || isVirtual() || namespace)) append("static ")
+                if (valType.name != "") append("${valType.name} ")
+                append("$name(${paramsString})")
+                if (isConst()) append(" const")
+                if (isPureCall()) append(" = 0")
+                append(";")
+            }
         }
-        sb.appendSpace(START_BLANK_SPACE + 1).append("*/\n")
-        sb.appendSpace(START_BLANK_SPACE)
-        if (isStaticGlobalVariable()) {
-            sb.append("MCAPI ")
-            if (namespace) sb.append("static ") else sb.append("extern ")
-            if (valType.name.isBlank()) valType.name = "auto" else valType.name = valType.name.replace("enum ", "::")
-            sb.append("${valType.name} $name;")
-        } else {
-            if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.name}"))
-                valType.name = ""
-            else if (valType.name.isBlank()) valType.name = "auto"
-            else valType.name = valType.name.replace("enum ", "::")
-            val paramsString = params.joinToString(", ") { it.name }.replace("enum ", "::")
-            if (isVirtual()) if (useFakeSymbol) sb.append("MCVAPI ") else sb.append("virtual ")
-            else sb.append("MCAPI ")
-            if (!(isPtrCall() || isVirtual() || namespace)) sb.append("static ")
-            if (valType.name != "") sb.append("${valType.name.replace("enum ", "::")} ")
-            sb.append("$name(${paramsString})")
-            if (isConst()) sb.append(" const")
-            if (isPureCall()) sb.append(" = 0")
-            sb.append(";")
-        }
-        var sbString = sb.toString()
-        GeneratorConfig.replacementRegex.forEach { sbString = sbString.replace(it.first, it.second) }
-        return sbString
+        GeneratorConfig.replacementRegex.forEach { origin = origin.replace(it.first, it.second) }
+        return origin
     }
 
     fun isConstructor() = symbolType == SymbolNodeType.Constructor

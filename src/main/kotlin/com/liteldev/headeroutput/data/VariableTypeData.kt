@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class VariableTypeData(
     var name: String,
-    val kind: VarSymbolKind,
+    var kind: VarSymbolKind,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

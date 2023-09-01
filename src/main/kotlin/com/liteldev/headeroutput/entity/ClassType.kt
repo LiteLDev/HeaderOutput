@@ -92,14 +92,13 @@ open class ClassType(
             appendLine("public:")
             append(generateInnerTypeDefine().replace("\n", "\n    "))
         }
-        append(genAntiReconstruction())
-        append(genPublic())
-        append(genProtected())
-        append(genPrivate())
-        if (type == TypeKind.CLASS) {
-            append(genProtected(genFunc = false))
-            append(genPrivate(genFunc = false))
-        }
+        append(generateAntiReconstruction())
+        append(generatePublic())
+        append(generateProtected())
+        append(generatePrivate())
+        append(generateProtected(genFunc = false))
+        append(generatePrivate(genFunc = false))
+        append(generateMemberAccessor())
         appendLine("};")
     }
 
@@ -159,7 +158,7 @@ open class ClassType(
         return sb.toString()
     }
 
-    private fun genAntiReconstruction(): String {
+    private fun generateAntiReconstruction(): String {
         val classType = if (this.type == TypeKind.STRUCT) "struct" else "class"
         val public = typeData.collectInstanceFunction()
             .filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
@@ -192,7 +191,7 @@ open class ClassType(
         }.toString()
     }
 
-    private fun genPublic() = buildString {
+    private fun generatePublic() = buildString {
         if (typeData.publicTypes.isEmpty() && typeData.publicStaticTypes.isEmpty() && typeData.virtual.isEmpty() && typeData.virtualUnordered.isEmpty()
         ) {
             return ""
@@ -207,11 +206,9 @@ open class ClassType(
             counter++
         }
         if (typeData.virtualUnordered.isNotEmpty()) {
-            appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullUpperEscapeName}")
             typeData.virtualUnordered.sortedBy { it.name }.forEach {
                 appendLine(it.genFuncString(useFakeSymbol = true))
             }
-            appendLine("#endif")
         }
         publicFunctions.let(::generateMembers).let(::append)
         publicVariables.let(::generateMembers).let(::append)
@@ -223,7 +220,7 @@ open class ClassType(
     /**
      * @param genFunc if true, generate function, otherwise generate static global variable
      */
-    private fun genProtected(genFunc: Boolean = true) = buildString {
+    private fun generateProtected(genFunc: Boolean = true) = buildString {
         if (genFunc) {
             if (protectedFunctions.isEmpty()) {
                 return ""
@@ -248,7 +245,7 @@ open class ClassType(
     /**
      * @param genFunc if true, generate function, otherwise generate static global variable
      */
-    private fun genPrivate(genFunc: Boolean = true) = buildString {
+    private fun generatePrivate(genFunc: Boolean = true) = buildString {
         if (genFunc) {
             if (privateFunctions.isEmpty()) {
                 return ""
@@ -281,6 +278,18 @@ open class ClassType(
         }.forEach {
             appendLine(it.genFuncString())
         }
+    }
+
+    private fun generateMemberAccessor() = buildString {
+        val members = privateVariables + protectedVariables
+        if (members.isEmpty()) return ""
+        appendLine("// member accessor")
+        appendLine("public:")
+        appendLine("    // NOLINTBEGIN")
+        privateVariables.forEach { append("    inline auto& $${it.name}() { return ${it.name}; }\n") }
+        appendLine("    // NOLINTEND")
+        trim()
+        appendLine()
     }
 
     private fun getTemplateDefine(): String? {

@@ -16,6 +16,7 @@ object GeneratorConfig {
     private val json = Json { explicitNulls = false }
 
     var enableRelativePath = false
+    var alwaysTrue: Boolean = false
     lateinit var rootPath: String
     lateinit var jsonPath: String
     lateinit var generatePath: String
