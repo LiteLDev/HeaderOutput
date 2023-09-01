@@ -13,11 +13,11 @@ class NamespaceType(
         if (typeData.publicTypes.isEmpty()) {
             return@buildString
         }
-        appendLine("// NOLINTBEGIN")
-        typeData.publicTypes.sortedBy { it.name }.forEach {
-            appendLine(it.genFuncString(namespace = true))
-        }
-        appendLine("// NOLINTEND")
+        appendLine("    // NOLINTBEGIN")
+        typeData.publicTypes.sortedBy { it.name }.joinToString("\n\n") {
+            it.genFuncString(namespace = true)
+        }.let(::appendLine)
+        appendLine("    // NOLINTEND")
         appendLine()
     }
 

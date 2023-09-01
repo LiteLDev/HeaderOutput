@@ -29,10 +29,10 @@ data class MemberTypeData(
     ): String {
         fun StringBuilder.appendIndented(str: String) = appendSpace(START_BLANK_SPACE).append(str).append("\n")
         var origin = buildString {
-            appendIndented("/**")
-            if (vIndex != null) appendIndented(" * @vIndex $vIndex")
-            if (symbol.isNotEmpty()) appendIndented(" * @symbol ${symbol.replace("@", "\\@")}")
-            appendIndented(" */")
+            val infos = mutableListOf<String>()
+            if (vIndex != null) infos.add("vIndex: $vIndex")
+            if (symbol.isNotEmpty()) infos.add("symbol: $symbol")
+            appendIndented("// ${infos.joinToString(", ")}")
             appendSpace(START_BLANK_SPACE)
             if (isStaticGlobalVariable()) {
                 append("MCAPI ")

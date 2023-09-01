@@ -49,6 +49,7 @@ open class ClassType(
     }
 
     private fun generateInnerTypeDefine(): String {
+        if (innerTypes.isEmpty()) return ""
         val generateOrder = innerTypes.toMutableList()
         generateOrder.sortWith(Comparator { o1, o2 ->
             if (o1 is EnumType && o2 is EnumType) {
@@ -66,22 +67,17 @@ open class ClassType(
 
             return@Comparator o1.name.compareTo(o2.name)
         })
-
-        val generateDeclares = buildString {
+        return buildString {
             val inners = generateOrder.filterIsInstance<ClassType>()
-            if (inners.isEmpty()) {
-                return@buildString
+            if (inners.isNotEmpty()) {
+                appendLine("// $simpleName inner types declare")
+                appendLine("// clang-format off")
+                appendLine(inners.joinToString(separator = "\n") { it.generateTypeDeclare() })
+                appendLine("// clang-format on\n")
             }
-            appendLine("// $simpleName inner types declare")
-            appendLine("// clang-format off")
-            appendLine(inners.joinToString(separator = "\n") { it.generateTypeDeclare() })
-            appendLine("// clang-format on\n")
-        }
-        val generatedTypes = buildString {
             appendLine("// $simpleName inner types define")
             append(generateOrder.joinToString(separator = "\n") { it.generateTypeDefine() })
         }
-        return if (innerTypes.isNotEmpty()) "\n$generateDeclares$generatedTypes" else ""
     }
 
     override fun generateTypeDefine(): String = buildString {
@@ -90,7 +86,12 @@ open class ClassType(
         appendLine("$classType $simpleName ${genParents()}{")
         if (innerTypes.isNotEmpty()) {
             appendLine("public:")
-            append(generateInnerTypeDefine().replace("\n", "\n    "))
+            val def = generateInnerTypeDefine()
+            if (def.isNotBlank()) {
+                append("    ")
+                append(def.replace("\n", "\n    "))
+            }
+            appendLine()
         }
         append(generateAntiReconstruction())
         append(generatePublic())
@@ -174,9 +175,9 @@ open class ClassType(
             }
         }
         return if (!genOperator && !genEmptyParamConstructor && !genCopyConstructor) {
-            "\n"
+            ""
         } else StringBuilder(
-            "\npublic:\n    // prevent constructor by default\n"
+            "public:\n    // prevent constructor by default\n"
         ).apply {
             if (genOperator) {
                 appendLine("    $simpleName& operator=($simpleName const &) = delete;")
@@ -199,16 +200,17 @@ open class ClassType(
         appendLine("public:")
         appendLine("    // NOLINTBEGIN")
         var counter = 0
-        typeData.virtual.forEach {
-            if (it.namespace.isEmpty() || it.namespace == name) {
-                appendLine(it.genFuncString(vIndex = counter))
-            }
-            counter++
-        }
+        val virtual = typeData.virtual.map {
+            counter++ to it
+        }.filter { (_, it) -> it.namespace.isEmpty() || it.namespace == name }
+        if (virtual.isNotEmpty())
+            virtual.joinToString("\n\n", postfix = "\n\n") { (i, it) ->
+                it.genFuncString(vIndex = i)
+            }.let(::append)
         if (typeData.virtualUnordered.isNotEmpty()) {
-            typeData.virtualUnordered.sortedBy { it.name }.forEach {
-                appendLine(it.genFuncString(useFakeSymbol = true))
-            }
+            typeData.virtualUnordered.sortedBy { it.name }.joinToString("\n\n", postfix = "\n\n") {
+                it.genFuncString(useFakeSymbol = true)
+            }.let(::append)
         }
         publicFunctions.let(::generateMembers).let(::append)
         publicVariables.let(::generateMembers).let(::append)
@@ -268,6 +270,7 @@ open class ClassType(
     }
 
     private fun generateMembers(members: List<MemberTypeData>) = buildString {
+        if (members.isEmpty()) return ""
         fun isStatic(member: MemberTypeData) = !(member.isPtrCall() || member.isVirtual())
         members.sortedWith { o1, o2 ->
             if (isStatic(o1) == isStatic(o2)) {
@@ -275,9 +278,9 @@ open class ClassType(
             } else {
                 if (isStatic(o1)) 1 else -1
             }
-        }.forEach {
-            appendLine(it.genFuncString())
-        }
+        }.joinToString("\n\n", postfix = "\n\n") {
+            it.genFuncString()
+        }.let(::append)
     }
 
     private fun generateMemberAccessor() = buildString {
@@ -286,7 +289,7 @@ open class ClassType(
         appendLine("// member accessor")
         appendLine("public:")
         appendLine("    // NOLINTBEGIN")
-        privateVariables.forEach { append("    inline auto& $${it.name}() { return ${it.name}; }\n") }
+        privateVariables.forEach { appendLine("    inline auto& $${it.name}() { return ${it.name}; }\n") }
         appendLine("    // NOLINTEND")
         trim()
         appendLine()
