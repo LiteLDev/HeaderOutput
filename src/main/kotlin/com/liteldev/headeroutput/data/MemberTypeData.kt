@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput.data
 
+import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.appendSpace
 import com.liteldev.headeroutput.config.GeneratorConfig
 import kotlinx.serialization.SerialName
@@ -29,6 +30,7 @@ data class MemberTypeData(
     ): String {
         fun StringBuilder.appendIndented(str: String) = appendSpace(START_BLANK_SPACE).append(str).append("\n")
         var origin = buildString {
+            val isFunctionPtr = valType.name.contains("*)(") && valType.name.endsWith(")")
             val infos = mutableListOf<String>()
             if (vIndex != null) infos.add("vIndex: $vIndex")
             if (symbol.isNotEmpty()) infos.add("symbol: $symbol")
@@ -37,21 +39,36 @@ data class MemberTypeData(
             if (isStaticGlobalVariable()) {
                 append("MCAPI ")
                 if (namespace) append("extern ") else append("static ")
-                if (valType.name.isBlank()) valType.name = "auto" else valType.name =
-                    valType.name.replace("enum ", "::")
+                if (valType.name.isBlank()) valType.name = "auto"
+                else typeMatchRegex.findAll(valType.name).forEach { matchResult ->
+                    val name = matchResult.groupValues[1]
+                    if (TypeManager.hasType(name))
+                        valType.name = valType.name.replace("enum $name", "::$name")
+                }
                 append("${valType.name} $name;")
             } else {
                 if (isOperator() && (name.startsWith("operator ") || name == "operator ${valType.name}"))
                     valType.name = ""
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
-                else valType.name = valType.name.replace("enum ", "::")
-                val paramsString = params.joinToString(", ") { it.name }.replace("enum ", "::")
+                else typeMatchRegex.findAll(valType.name).forEach { matchResult ->
+                    val name = matchResult.groupValues[1]
+                    if (TypeManager.hasType(name))
+                        valType.name = valType.name.replace("enum $name", "::$name")
+                }
+                var paramsString = params.joinToString(", ") { it.name }
+                typeMatchRegex.findAll(paramsString).forEach { matchResult ->
+                    val name = matchResult.groupValues[1]
+                    if (TypeManager.hasType(name))
+                        paramsString = paramsString.replace("enum $name", "::$name")
+                }
                 if (isVirtual()) if (useFakeSymbol) append("MCVAPI ") else append("virtual ")
                 else append("MCAPI ")
                 if (!(isPtrCall() || isVirtual() || namespace)) append("static ")
-                if (valType.name != "") append("${valType.name} ")
+                if (isFunctionPtr) append("auto ")
+                else if (valType.name != "") append("${valType.name} ")
                 append("$name(${paramsString})")
                 if (isConst()) append(" const")
+                if (isFunctionPtr) append(" -> ${valType.name}")
                 if (isPureCall()) append(" = 0")
                 append(";")
             }
@@ -96,5 +113,7 @@ data class MemberTypeData(
         const val FLAG_PURE_CALL = 1 shl 2
 
         const val START_BLANK_SPACE = 4
+
+        val typeMatchRegex = Regex("enum\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
     }
 }

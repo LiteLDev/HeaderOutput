@@ -289,7 +289,10 @@ open class ClassType(
         appendLine("// member accessor")
         appendLine("public:")
         appendLine("    // NOLINTBEGIN")
-        privateVariables.forEach { appendLine("    inline auto& $${it.name}() { return ${it.name}; }\n") }
+        privateVariables.forEach {
+            val pureName = it.name.removeSuffix("[]")
+            appendLine("    inline auto& $$pureName() { return $pureName; }\n")
+        }
         appendLine("    // NOLINTEND")
         trim()
         appendLine()
