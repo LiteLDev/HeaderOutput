@@ -52,7 +52,7 @@ data class MemberTypeData(
                 valType.name = ""
             else if (valType.name.isBlank()) valType.name = "auto"
             else valType.name = valType.name.replace("enum ", "::")
-            val paramsString = params.joinToString(", ").replace("enum ", "::")
+            val paramsString = params.joinToString(", ") { it.name }.replace("enum ", "::")
             if (isVirtual()) if (useFakeSymbol) sb.append("MCVAPI ") else sb.append("virtual ")
             else sb.append("MCAPI ")
             if (!(isPtrCall() || isVirtual() || namespace)) sb.append("static ")
