@@ -23,17 +23,16 @@ open class ClassType(
         if (isStructType) {
             this.type = TypeKind.STRUCT
         }
-        typeData.virtual?.forEach { virtual ->
-            typeData.virtualUnordered?.removeIf { unordered ->
-                virtual.symbol == unordered.symbol
-            }
+        val ordered = typeData.virtual.map { it.symbol }.toMutableList()
+        typeData.virtualUnordered.removeIf { unordered ->
+            unordered.symbol in ordered
         }
         fun determineType(
-            members: List<MemberTypeData>?,
+            members: List<MemberTypeData>,
             funList: MutableList<MemberTypeData>,
             varList: MutableList<MemberTypeData>
         ) {
-            members?.forEach { member ->
+            members.forEach { member ->
                 if (member.isStaticGlobalVariable()) {
                     varList.add(member)
                 } else {
@@ -165,15 +164,15 @@ open class ClassType(
         val public = typeData.collectInstanceFunction()
             .filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
         val genOperator = public.none {
-            it.isOperator() && it.params?.let { params ->
-                params.size == 1 && params[0].Name == "$classType $name const &"
-            } == true // && it.valType.Name == "$classType $name &" Removed because of overload
+            it.isOperator() && it.params.let { params ->
+                params.size == 1 && params[0].name == "$classType $name const &"
+            } // && it.valType.Name == "$classType $name &" Removed because of overload
         }
-        val genEmptyParamConstructor = public.none { it.name == simpleName && it.params?.isEmpty() ?: true }
+        val genEmptyParamConstructor = public.none { it.name == simpleName && it.params.isEmpty() }
         val genCopyConstructor = public.none {
-            it.name == simpleName && it.params?.let { params ->
-                params.size == 1 && params[0].Name == "$classType $name const &"
-            } == true
+            it.name == simpleName && it.params.let { params ->
+                params.size == 1 && params[0].name == "$classType $name const &"
+            }
         }
         return if (!genOperator && !genEmptyParamConstructor && !genCopyConstructor) {
             "\n"
@@ -194,25 +193,22 @@ open class ClassType(
     }
 
     private fun genPublic() = buildString {
-        if (typeData.publicTypes?.isEmpty() != false &&
-            typeData.publicStaticTypes?.isEmpty() != false &&
-            typeData.virtual?.isEmpty() != false &&
-            typeData.virtualUnordered?.isEmpty() != false
+        if (typeData.publicTypes.isEmpty() && typeData.publicStaticTypes.isEmpty() && typeData.virtual.isEmpty() && typeData.virtualUnordered.isEmpty()
         ) {
             return ""
         }
         appendLine("public:")
         appendLine("    // NOLINTBEGIN")
         var counter = 0
-        typeData.virtual?.forEach {
+        typeData.virtual.forEach {
             if (it.namespace.isEmpty() || it.namespace == name) {
                 appendLine(it.genFuncString(vIndex = counter))
             }
             counter++
         }
-        if (typeData.virtualUnordered?.isNotEmpty() == true) {
+        if (typeData.virtualUnordered.isNotEmpty()) {
             appendLine("#ifdef ENABLE_VIRTUAL_FAKESYMBOL_${fullUpperEscapeName}")
-            typeData.virtualUnordered?.sortedBy { it.name }?.forEach {
+            typeData.virtualUnordered.sortedBy { it.name }.forEach {
                 appendLine(it.genFuncString(useFakeSymbol = true))
             }
             appendLine("#endif")

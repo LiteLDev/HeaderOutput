@@ -1,7 +1,6 @@
 package com.liteldev.headeroutput.entity
 
 import com.liteldev.headeroutput.data.TypeData
-import com.liteldev.headeroutput.getTopLevelFileType
 import com.liteldev.headeroutput.isEnum
 import com.liteldev.headeroutput.isNamespace
 import com.liteldev.headeroutput.relativePathTo
@@ -10,12 +9,12 @@ class NamespaceType(
     name: String, typeData: TypeData
 ) : BaseType(name, TypeKind.NAMESPACE, typeData) {
 
-    fun genPublic() = buildString {
-        if (typeData.publicTypes?.isEmpty() != false) {
+    private fun genPublic() = buildString {
+        if (typeData.publicTypes.isEmpty()) {
             return@buildString
         }
         appendLine("// NOLINTBEGIN")
-        typeData.publicTypes?.sortedBy { it.name }?.forEach {
+        typeData.publicTypes.sortedBy { it.name }.forEach {
             appendLine(it.genFuncString(namespace = true))
         }
         appendLine("// NOLINTEND")

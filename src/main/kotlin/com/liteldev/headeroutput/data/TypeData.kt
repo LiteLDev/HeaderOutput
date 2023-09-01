@@ -9,20 +9,20 @@ import java.util.*
 
 @Serializable
 data class TypeData(
-    @SerialName("child_types") val childTypes: List<String>?,
-    @SerialName("parent_types") val parentTypes: List<String>?,
-    @SerialName("private") val privateTypes: List<MemberTypeData>?,
-    @SerialName("private.static") val privateStaticTypes: List<MemberTypeData>?,
-    @SerialName("protected") val protectedTypes: List<MemberTypeData>?,
-    @SerialName("protected.static") val protectedStaticTypes: List<MemberTypeData>?,
-    @SerialName("public") val publicTypes: List<MemberTypeData>?,
-    @SerialName("public.static") val publicStaticTypes: List<MemberTypeData>?,
-    val virtual: List<MemberTypeData>?,
-    @SerialName("virtual.unordered") val virtualUnordered: MutableList<MemberTypeData>?,
-    @SerialName("vtbl_entry") val vtblEntry: List<String>?
+    @SerialName("child_types") val childTypes: List<String> = emptyList(),
+    @SerialName("parent_types") val parentTypes: List<String> = emptyList(),
+    @SerialName("private") val privateTypes: List<MemberTypeData> = emptyList(),
+    @SerialName("private.static") val privateStaticTypes: List<MemberTypeData> = emptyList(),
+    @SerialName("protected") val protectedTypes: List<MemberTypeData> = emptyList(),
+    @SerialName("protected.static") val protectedStaticTypes: List<MemberTypeData> = emptyList(),
+    @SerialName("public") val publicTypes: List<MemberTypeData> = emptyList(),
+    @SerialName("public.static") val publicStaticTypes: List<MemberTypeData> = emptyList(),
+    val virtual: List<MemberTypeData> = emptyList(),
+    @SerialName("virtual.unordered") val virtualUnordered: MutableList<MemberTypeData> = mutableListOf(),
+    @SerialName("vtbl_entry") val virtualTableEntry: List<String> = emptyList()
 ) {
 
-    fun collectAllFunction() = listOfNotNull(
+    private fun collectAllFunction() = listOf(
         privateTypes,
         privateStaticTypes,
         protectedTypes,
@@ -52,7 +52,7 @@ data class TypeData(
 
     fun collectReferencedTypes(): Map<String, BaseType.TypeKind> {
         return collectAllFunction().flatMap { memberType ->
-            (memberType.params?.mapNotNull { it.Name } ?: emptyList()) + listOfNotNull(memberType.valType.Name)
+            memberType.params.map { it.name } + listOfNotNull(memberType.valType.name)
         }.flatMap(::matchTypes).toMap()
     }
 
@@ -60,7 +60,7 @@ data class TypeData(
         val typeMatchRegex = Regex("(struct|class|enum)\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
 
         fun empty(): TypeData {
-            return TypeData(null, null, null, null, null, null, null, null, null, null, null)
+            return TypeData()
         }
     }
 }

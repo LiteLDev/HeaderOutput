@@ -3,18 +3,39 @@ package com.liteldev.headeroutput
 import com.liteldev.headeroutput.ast.template.NodeType
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.data.TypeData
-import com.liteldev.headeroutput.entity.*
+import com.liteldev.headeroutput.entity.BaseType
 import com.liteldev.headeroutput.entity.BaseType.TypeKind
+import com.liteldev.headeroutput.entity.ClassType
+import com.liteldev.headeroutput.entity.EnumType
+import com.liteldev.headeroutput.entity.NamespaceType
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 object TypeManager {
     private val logger = KotlinLogging.logger { }
     private val typeMap = hashMapOf<String, BaseType>()
 
+    val typeDataMap = hashMapOf<String, TypeData>()
+    val typeKinds by lazy {
+        logger.info { "Collecting type kinds" }
+        val map = hashMapOf<String, TypeKind>()
+        val typeDataSet = typeDataMap.values
+        typeDataSet.forEach {
+            map.putAll(it.collectReferencedTypes())
+        }
+        map
+    }
     val nestingMap = hashMapOf<String, BaseType>()
     val template = hashMapOf<String, List<NodeType>>()
 
-    private val classTypeNames = hashSetOf<String>()
+    val classTypeNames by lazy {
+        logger.info { "Collecting class type names" }
+        val set = mutableSetOf<String>()
+        set.addAll(HeaderOutput.classNameList)
+        set.addAll(HeaderOutput.structNameList)
+        typeDataMap.values.map { it.parentTypes }.flatten().let(set::addAll)
+        typeKinds.keys.let(set::addAll)
+        set
+    }
 
     fun addType(fullName: String, type: BaseType) {
         typeMap[fullName] = type
@@ -34,19 +55,7 @@ object TypeManager {
 
     fun constructNotExistedType() {
         logger.info { "Constructing not existed types" }
-        val typeDataSet = HeaderOutput.typeDataMap.values
-        val waitingForConstruct = mutableMapOf<String, TypeKind>()
-        typeDataSet.forEach {
-            it.collectReferencedTypes().forEach { (name, kind) ->
-                if (!hasType(name)) {
-                    waitingForConstruct[name] = kind
-                }
-            }
-        }
-        classTypeNames.addAll(HeaderOutput.classNameList)
-        classTypeNames.addAll(HeaderOutput.structNameList)
-        typeDataSet.mapNotNull { it.parentTypes }.flatten().let(classTypeNames::addAll)
-        waitingForConstruct.forEach { (name, kind) ->
+        typeKinds.forEach { (name, kind) ->
             if (!hasType(name)) {
                 createDummyClass(name, kind)
             }
@@ -56,7 +65,7 @@ object TypeManager {
     fun initParents() {
         logger.info { "Initializing parents" }
         typeMap.values.filterIsInstance<ClassType>().forEach { type ->
-            type.typeData.parentTypes?.getOrNull(0)?.run { typeMap[this] }
+            type.typeData.parentTypes.getOrNull(0)?.run { typeMap[this] }
                 ?.let { type.parents.add(it); type.referenceTypes.add(it) }
             /*
             fixme: Fix in header generator: recursive parent

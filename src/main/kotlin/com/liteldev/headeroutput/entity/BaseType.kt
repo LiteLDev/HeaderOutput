@@ -54,7 +54,7 @@ abstract class BaseType(
             }
             if (this is ClassType) {
                 val parentRules = GeneratorConfig.getSortRules().parent
-                parentRules.find { this.typeData.parentTypes?.contains(it.parent) == true || this.name == it.parent }
+                parentRules.find { this.typeData.parentTypes.contains(it.parent) || this.name == it.parent }
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }

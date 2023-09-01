@@ -54,8 +54,8 @@ enum class StorageClassType(override val value: Int) : IntEnumBase {
 }
 
 @Suppress("unused")
-@Serializable(with = VarSymbolType.Companion::class)
-enum class VarSymbolType(override val value: Int) : IntEnumBase {
+@Serializable(with = VarSymbolKind.Companion::class)
+enum class VarSymbolKind(override val value: Int) : IntEnumBase {
     Unknown(0),
     Md5Symbol(1),
     PrimitiveType(2),
@@ -86,7 +86,7 @@ enum class VarSymbolType(override val value: Int) : IntEnumBase {
     VariableSymbol(27),
     SpecialTableSymbol(28);
 
-    companion object : IntEnumSerializer<VarSymbolType>(VarSymbolType::class.simpleName!!, VarSymbolType::class)
+    companion object : IntEnumSerializer<VarSymbolKind>(VarSymbolKind::class.simpleName!!, VarSymbolKind::class)
 }
 
 interface IntEnumBase {

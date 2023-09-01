@@ -1,12 +1,11 @@
 package com.liteldev.headeroutput.data
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class VariableTypeData(
-    @SerialName("name") var Name: String?,
-    @SerialName("kind") val Type: VarSymbolType,
+    var name: String,
+    val kind: VarSymbolKind,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -14,13 +13,13 @@ data class VariableTypeData(
 
         other as VariableTypeData
 
-        if (Name != other.Name) return false
-        return Type == other.Type
+        if (name != other.name) return false
+        return kind == other.kind
     }
 
     override fun hashCode(): Int {
-        var result = Name?.hashCode() ?: 0
-        result = 31 * result + Type.value
+        var result = name.hashCode()
+        result = 31 * result + kind.value
         return result
     }
 }

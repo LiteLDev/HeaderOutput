@@ -1,5 +1,6 @@
 package com.liteldev.headeroutput
 
+import com.liteldev.headeroutput.TypeManager.typeDataMap
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.data.MemberTypeData
 import com.liteldev.headeroutput.data.StorageClassType
@@ -15,9 +16,10 @@ import kotlinx.cli.default
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import java.io.File
+import java.util.*
 
 @OptIn(ExperimentalSerializationApi::class)
-private val json = Json { explicitNulls = false }
+private val json = Json { coerceInputValues = true; explicitNulls = false }
 
 object HeaderOutput {
     private val logger = KotlinLogging.logger { }
@@ -25,13 +27,14 @@ object HeaderOutput {
     private lateinit var originData: JsonObject
     lateinit var classNameList: MutableSet<String>
     lateinit var structNameList: MutableSet<String>
-    lateinit var typeDataMap: MutableMap<String, TypeData>
 
     @JvmStatic
     fun main(args: Array<String>) {
         if (!readCommandLineArgs(args)) return
 
         GeneratorConfig.loadConfig()
+
+        clearOldFiles()
         loadOriginData()
         loadIdentifiedTypes()
         constructTypes()
@@ -96,17 +99,31 @@ object HeaderOutput {
         return true
     }
 
+    private fun clearOldFiles() {
+        // ask to delete all files in generate path
+        val generatePath = File(GeneratorConfig.generatePath)
+        if (generatePath.exists()) {
+            print("Delete all files in ${generatePath.canonicalPath}? (y/n): ")
+            val input = readlnOrNull()
+            if (input == "y") {
+                generatePath.deleteRecursively()
+            } else {
+                logger.info { "Skip deleting files" }
+            }
+        }
+    }
 
     private fun loadOriginData() {
         logger.info { "Loading origin data..." }
         val configText = File(GeneratorConfig.jsonPath).readText()
         originData = Json.parseToJsonElement(configText).jsonObject
-        typeDataMap = originData["classes"]?.jsonObject?.mapValues { entry ->
+        Objects.requireNonNull(originData["classes"], "origin data must contains classes field")
+        typeDataMap.putAll(originData["classes"]!!.jsonObject.mapValues { entry ->
             json.decodeFromJsonElement<TypeData>(entry.value)
-        }?.toMutableMap() ?: mutableMapOf()
+        }.toMutableMap())
         typeDataMap.values.forEach { type ->
             var counter = 0
-            type.virtual?.forEach {
+            type.virtual.forEach {
                 // 对于没有名字的虚函数，将其标记为未知函数，并且将其名字设置为 __unk_vfn_0, __unk_vfn_1, ...
                 if (it.name == "" && !it.isUnknownFunction())
                     it.symbolType = SymbolNodeType.Unknown
@@ -169,6 +186,8 @@ object HeaderOutput {
     private fun isNameSpace(typeName: String, typeData: TypeData): Boolean {
         if (isStruct(typeName) || isClass(typeName))
             return false
+        if (TypeManager.classTypeNames.contains(typeName))
+            return false
         if (listOf(
                 typeData.privateTypes,
                 typeData.privateStaticTypes,
@@ -176,10 +195,10 @@ object HeaderOutput {
                 typeData.protectedStaticTypes,
                 typeData.publicStaticTypes,
                 typeData.virtual,
-                typeData.vtblEntry
-            ).any { it != null }
+                typeData.virtualTableEntry
+            ).any { it.isNotEmpty() }
         ) return false
-        return typeData.publicTypes?.none { it.isPtrCall() } == true
+        return typeData.publicTypes.none { it.isPtrCall() }
     }
 
     private fun isStruct(typeName: String) = structNameList.contains(typeName)
