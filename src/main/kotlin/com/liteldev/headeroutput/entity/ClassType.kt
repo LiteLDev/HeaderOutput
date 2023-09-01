@@ -299,7 +299,7 @@ open class ClassType(
             params.forEachIndexed { index, nodeType ->
                 when (nodeType) {
                     NodeType.TYPE -> append("typename")
-                    NodeType.INTEGER -> append("int32_t")
+                    NodeType.INTEGER -> append("int")
                     NodeType.FLOAT -> append("float")
                     NodeType.BOOLEAN -> append("bool")
                     NodeType.VARIABLE -> return@forEachIndexed
