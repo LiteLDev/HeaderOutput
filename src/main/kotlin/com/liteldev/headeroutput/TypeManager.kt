@@ -3,11 +3,8 @@ package com.liteldev.headeroutput
 import com.liteldev.headeroutput.ast.template.NodeType
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.data.TypeData
-import com.liteldev.headeroutput.entity.BaseType
+import com.liteldev.headeroutput.entity.*
 import com.liteldev.headeroutput.entity.BaseType.TypeKind
-import com.liteldev.headeroutput.entity.ClassType
-import com.liteldev.headeroutput.entity.EnumType
-import com.liteldev.headeroutput.entity.NamespaceType
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 object TypeManager {
@@ -134,16 +131,10 @@ object TypeManager {
             }
         } else when (type) {
             TypeKind.CLASS -> ClassType(name, TypeData.empty(), isTemplateClass = template.contains(name))
-            TypeKind.STRUCT -> ClassType(
-                name,
-                TypeData.empty(),
-                isStructType = true,
-                isTemplateClass = template.contains(name)
-            )
-
+            TypeKind.STRUCT -> ClassType(name, TypeData.empty(), isStruct = true, isTemplateClass = template.contains(name))
             TypeKind.ENUM -> EnumType(name)
+            TypeKind.UNION -> UnionType(name)
             TypeKind.NAMESPACE -> NamespaceType(name, TypeData.empty())
-            else -> throw IllegalArgumentException("type $type is not supported")
         }
 
         if (name.contains("::")) {

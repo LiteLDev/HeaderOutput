@@ -6,7 +6,7 @@ import com.liteldev.headeroutput.data.MemberTypeData
 import com.liteldev.headeroutput.data.TypeData
 
 open class ClassType(
-    name: String, typeData: TypeData, val isTemplateClass: Boolean = false, isStructType: Boolean = false,
+    name: String, typeData: TypeData, val isTemplateClass: Boolean = false, isStruct: Boolean = false,
 ) : BaseType(name, TypeKind.CLASS, typeData) {
 
     private val publicFunctions = arrayListOf<MemberTypeData>()
@@ -20,7 +20,7 @@ open class ClassType(
 
     // fixme: Fix in header generator
     init {
-        if (isStructType) {
+        if (isStruct) {
             this.type = TypeKind.STRUCT
         }
         val ordered = typeData.virtual.map { it.symbol }.toMutableList()
@@ -52,19 +52,12 @@ open class ClassType(
         if (innerTypes.isEmpty()) return ""
         val generateOrder = innerTypes.toMutableList()
         generateOrder.sortWith(Comparator { o1, o2 ->
-            if (o1 is EnumType && o2 is EnumType) {
-                return@Comparator o1.name.compareTo(o2.name)
-            }
-            if (o1 is EnumType || o2 is EnumType) {
-                return@Comparator if (o1 is EnumType) -1 else 1
-            }
-            if (o1 in o2.allReferences || o1.allInnerTypes.any { it in o2.allReferences }) {
-                return@Comparator -1
-            }
-            if (o2 in o1.allReferences || o2.allInnerTypes.any { it in o1.allReferences }) {
-                return@Comparator 1
-            }
-
+            if (o1.isEnum() && o2.isEnum()) return@Comparator o1.name.compareTo(o2.name)
+            if (o1.isEnum() || o2.isEnum()) return@Comparator if (o1 is EnumType) -1 else 1
+            if (o1.isUnion() && o2.isUnion()) return@Comparator o1.name.compareTo(o2.name)
+            if (o1.isUnion() || o2.isUnion()) return@Comparator if (o1 is EnumType) -1 else 1
+            if (o1 in o2.allReferences || o1.allInnerTypes.any { it in o2.allReferences }) return@Comparator -1
+            if (o2 in o1.allReferences || o2.allInnerTypes.any { it in o1.allReferences }) return@Comparator 1
             return@Comparator o1.name.compareTo(o2.name)
         })
         return buildString {

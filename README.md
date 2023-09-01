@@ -1,9 +1,12 @@
 # HeaderOutput
-Tool that convert OriginalData to Header
+
+_part of LiteLoaderBDS Toolchain, is used to generate BDS header._
+
+___
 
 #### Important Contributors
 
-| ![dreamguxiang](https://avatars.githubusercontent.com/u/62042544?s=96&v=4) | ![WangYneos](https://avatars.githubusercontent.com/u/42824603?s=96&v=4) | ![xiaoqch](https://avatars.githubusercontent.com/u/37901097?s=96&v=4) | ![RimuruChan](https://avatars.githubusercontent.com/u/42002296?s=96&v=4)  |
-|:--------------------------------------------------------------------------:|:-----------------------------------------------------------------------:|:---------------------------------------------------------------------:|:-------------------------------------------------------------------------:|
-|              [@dreamguxiang](https://github.com/dreamguxiang)              |               [@WangYneos](https://github.com/WangYneos)                |        [@xiaoqch](https://github.com/xiaoqch)                         |               [@RimuruChan](https://github.com/RimuruChan)                |
+| ![RimuruChan](https://github.com/RimuruChan.png?size=96) | ![OEOTYAN](https://github.com/OEOTYAN.png?size=96) | ![JasonZYT](https://github.com/Jasonzyt.png?size=96) | ![WangYneos](https://github.com/KawaiiNahida.png?size=96) |
+|:--------------------------------------------------------:|:--------------------------------------------------:|:----------------------------------------------------:|:---------------------------------------------------------:|
+|       [@RimuruChan](https://github.com/RimuruChan)       |       [@OEOTYAN](https://github.com/OEOTYAN)       |       [@JasonZYT](https://github.com/Jasonzyt)       |     [@KawaiiNahida](https://github.com/KawaiiNahida)      |      
 

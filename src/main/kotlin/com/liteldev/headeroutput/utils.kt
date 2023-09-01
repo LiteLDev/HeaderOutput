@@ -20,6 +20,8 @@ fun BaseType.isNamespace() = this.type == BaseType.TypeKind.NAMESPACE
 
 fun BaseType.isEnum() = this.type == BaseType.TypeKind.ENUM
 
+fun BaseType.isUnion() = this.type == BaseType.TypeKind.UNION
+
 fun BaseType.getTopLevelFileType(): BaseType {
     require(TypeManager.nestingMap.isNotEmpty()) { "TypeManager.nestingMap is empty" }
 

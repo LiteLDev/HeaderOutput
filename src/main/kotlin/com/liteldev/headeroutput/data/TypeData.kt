@@ -45,19 +45,19 @@ data class TypeData(
         .map { it.groupValues[2] to BaseType.TypeKind.valueOf(it.groupValues[1].uppercase(Locale.getDefault())) }
         .onEach { (typeName, _) ->
             if (name.contains("$typeName<")) {
-                runCatching { (Parser(name).parse() as Flattenable?)?.flatten() }
+                runCatching { (Parser(name).parse() as? Flattenable)?.flatten() }
             }
         } // detects template class
 
 
     fun collectReferencedTypes(): Map<String, BaseType.TypeKind> {
         return collectAllFunction().flatMap { memberType ->
-            memberType.params.map { it.name } + listOfNotNull(memberType.valType.name)
+            memberType.params.map { it.name } + memberType.valType.name
         }.flatMap(::matchTypes).toMap()
     }
 
     companion object {
-        val typeMatchRegex = Regex("(struct|class|enum)\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
+        val typeMatchRegex = Regex("(struct|class|enum|union)\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
 
         fun empty(): TypeData {
             return TypeData()

@@ -151,7 +151,7 @@ object HeaderOutput {
                 TypeManager.addType(
                     typeName,
                     when {
-                        isStruct(typeName) -> ClassType(typeName, type, isStructType = true)
+                        isStruct(typeName) -> ClassType(typeName, type, isStruct = true)
                         isClass(typeName) -> ClassType(typeName, type)
                         isNameSpace(typeName, type) -> NamespaceType(typeName, type)
                         else -> {

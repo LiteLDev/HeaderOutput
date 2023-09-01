@@ -1,11 +1,9 @@
 package com.liteldev.headeroutput.entity
 
+import com.liteldev.headeroutput.*
 import com.liteldev.headeroutput.HeaderGenerator.HEADER_SUFFIX
-import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.config.GeneratorConfig
 import com.liteldev.headeroutput.data.TypeData
-import com.liteldev.headeroutput.getTopLevelFileType
-import com.liteldev.headeroutput.toSnakeCase
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -65,10 +63,17 @@ abstract class BaseType(
             regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
                 return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
             }
-            if (this is EnumType) {
+            if (this.isEnum()) {
                 if (!this.name.contains("::"))
                     return@run "$root/enums/${this.simpleName}.$HEADER_SUFFIX"
                 return@run "$root/enums/${
+                    this.name.replace("::", "/").substringBeforeLast("/").toSnakeCase()
+                }/$simpleName.$HEADER_SUFFIX"
+            }
+            if (this.isUnion()) {
+                if (!this.name.contains("::"))
+                    return@run "$root/unions/${this.simpleName}.$HEADER_SUFFIX"
+                return@run "$root/unions/${
                     this.name.replace("::", "/").substringBeforeLast("/").toSnakeCase()
                 }/$simpleName.$HEADER_SUFFIX"
             }
