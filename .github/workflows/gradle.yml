@@ -1,37 +1,70 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
 name: Java CI with Gradle
-
+env:
+  JAR_SHA256: ''
 on:
   push:
+    paths:
+      - ".github/workflows/*.yml"
+      - "**.kts"
+      - "**.kt"
+      - "**.java"
   pull_request:
-
-permissions:
-  contents: read
+  release:
+    types:
+      - created
+  workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    - name: Build with Gradle
-      uses: gradle/gradle-build-action@v2.4.2
-      with:
-        arguments: build
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        path: build/libs
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          arguments: build
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          path: build/libs
+
+  upload-to-release:
+    name: Upload to Release
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get Version
+        run: echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Compute Artifacts SHA256
+        run: |
+          echo "JAR_SHA256=$(sha256sum artifact/HeaderGenerator-${{ env.VERSION }}-all.jar | cut -d ' ' -f 1)" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          append_body: true
+          files: |
+            artifact/HeaderGenerator-${{ env.VERSION }}-all.jar
+          body: |
+            ---
+            | File                                           | SHA256                |
+            | :--------------------------------------------- | :-------------------- |
+            | HeaderGenerator-${{ env.VERSION }}-all.jar     | ${{ env.JAR_SHA256 }} |
