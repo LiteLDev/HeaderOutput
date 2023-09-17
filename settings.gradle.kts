@@ -1,1 +1,1 @@
-rootProject.name = "HeaderGenerator"
+rootProject.name = "HeaderOutput"

@@ -54,7 +54,7 @@ jobs:
 
       - name: Compute Artifacts SHA256
         run: |
-          echo "JAR_SHA256=$(sha256sum artifact/HeaderGenerator-${{ env.VERSION }}-all.jar | cut -d ' ' -f 1)" >> $GITHUB_ENV
+          echo "JAR_SHA256=$(sha256sum artifact/HeaderOutput-${{ env.VERSION }}-all.jar | cut -d ' ' -f 1)" >> $GITHUB_ENV
         shell: bash
 
       - name: Upload Release Assets
@@ -62,9 +62,9 @@ jobs:
         with:
           append_body: true
           files: |
-            artifact/HeaderGenerator-${{ env.VERSION }}-all.jar
+            artifact/HeaderOutput-${{ env.VERSION }}-all.jar
           body: |
             ---
             | File                                           | SHA256                |
             | :--------------------------------------------- | :-------------------- |
-            | HeaderGenerator-${{ env.VERSION }}-all.jar     | ${{ env.JAR_SHA256 }} |
+            | HeaderOutput-${{ env.VERSION }}-all.jar     | ${{ env.JAR_SHA256 }} |
