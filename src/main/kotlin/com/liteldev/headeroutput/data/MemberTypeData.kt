@@ -47,6 +47,7 @@ data class MemberTypeData(
                     valType.name = ""
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
                 else valType.name = valType.name.replaceEnumType()
+                if (isConstructor() && params.size == 1) append("explicit ")
                 val paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
                 if (isVirtual()) if (useFakeSymbol) append("MCVAPI ") else append("virtual ")
                 else append("MCAPI ")
