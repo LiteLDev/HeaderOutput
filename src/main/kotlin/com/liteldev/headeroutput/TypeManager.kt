@@ -12,7 +12,7 @@ object TypeManager {
     private val typeMap = hashMapOf<String, BaseType>()
 
     val typeDataMap = hashMapOf<String, TypeData>()
-    val typeKinds by lazy {
+    private val typeKinds by lazy {
         logger.info { "Collecting type kinds" }
         val map = hashMapOf<String, TypeKind>()
         val typeDataSet = typeDataMap.values
@@ -23,7 +23,6 @@ object TypeManager {
     }
     val nestingMap = hashMapOf<String, BaseType>()
     val template = hashMapOf<String, List<NodeType>>()
-
     val classTypeNames by lazy {
         logger.info { "Collecting class type names" }
         val set = mutableSetOf<String>()
@@ -131,7 +130,13 @@ object TypeManager {
             }
         } else when (type) {
             TypeKind.CLASS -> ClassType(name, TypeData.empty(), isTemplateClass = template.contains(name))
-            TypeKind.STRUCT -> ClassType(name, TypeData.empty(), isStruct = true, isTemplateClass = template.contains(name))
+            TypeKind.STRUCT -> ClassType(
+                name,
+                TypeData.empty(),
+                isStruct = true,
+                isTemplateClass = template.contains(name)
+            )
+
             TypeKind.ENUM -> EnumType(name)
             TypeKind.UNION -> UnionType(name)
             TypeKind.NAMESPACE -> NamespaceType(name, TypeData.empty())

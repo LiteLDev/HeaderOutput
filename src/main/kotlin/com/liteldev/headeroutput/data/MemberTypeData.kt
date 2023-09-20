@@ -3,6 +3,7 @@ package com.liteldev.headeroutput.data
 import com.liteldev.headeroutput.TypeManager
 import com.liteldev.headeroutput.appendSpace
 import com.liteldev.headeroutput.config.GeneratorConfig
+import com.liteldev.headeroutput.entity.BaseType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,11 +18,13 @@ data class MemberTypeData(
     @SerialName("name") var name: String, // hasComponent
     @SerialName("params") val params: List<VariableTypeData> = emptyList(),
     @SerialName("flag_bits") var flags: Int, // 1
-
     @SerialName("rva") val rva: Long, // 13417264
     @SerialName("symbol") var symbol: String, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
     @SerialName("fake_symbol") val fakeSymbol: String?, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
 ) {
+    val type: BaseType by lazy {
+        TypeManager.getType(namespace)!!
+    }
 
     fun genFuncString(
         namespace: Boolean = false,
@@ -47,11 +50,12 @@ data class MemberTypeData(
                     valType.name = ""
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
                 else valType.name = valType.name.replaceEnumType()
-                if (isConstructor() && params.size == 1) append("explicit ")
                 val paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
                 if (isVirtual()) if (useFakeSymbol) append("MCVAPI ") else append("virtual ")
                 else append("MCAPI ")
                 if (!(isPtrCall() || isVirtual() || namespace)) append("static ")
+                if ((isConstructor() && !isCopyConstructor() && !isMoveConstructor() && params.size == 1) || isConversionOperator())
+                    append("explicit ")
                 if (isFunctionPtr) append("auto ")
                 else if (valType.name != "") append("${valType.name} ")
                 append("$name(${paramsString})")
@@ -76,9 +80,26 @@ data class MemberTypeData(
     fun isStaticGlobalVariable() = symbolType == SymbolNodeType.StaticVar
 
     fun isConst() = hasFlag(FLAG_CONST)
+
     fun isPtrCall() = hasFlag(FLAG_PTR_CALL)
 
     fun isPureCall() = hasFlag(FLAG_PURE_CALL)
+
+    fun isConversionOperator() = isOperator() && name.startsWith("operator ")
+
+    fun isCopyOperator() = isOperator() && params.run {
+        size == 1 && (this[0].name == "${type.type} ${type.name} const &")
+    }
+
+    fun isDefaultConstructor() = isConstructor() && params.isEmpty()
+
+    fun isCopyConstructor() = isConstructor() && params.run {
+        size == 1 && (this[0].name == "${type.type} ${type.name} const &")
+    }
+
+    fun isMoveConstructor() = isConstructor() && params.run {
+        size == 1 && (this[0].name == "${type.type} ${type.name} &&")
+    }
 
     fun addFlag(flag: Int) {
         if (flags and flag != flag) flags += flag

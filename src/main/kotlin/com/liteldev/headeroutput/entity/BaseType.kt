@@ -109,7 +109,17 @@ abstract class BaseType(
     }
 
     enum class TypeKind {
-        CLASS, STRUCT, ENUM, UNION, NAMESPACE
+        CLASS, STRUCT, ENUM, UNION, NAMESPACE;
+
+        override fun toString(): String {
+            return when (this) {
+                CLASS -> "class"
+                STRUCT -> "struct"
+                ENUM -> "enum"
+                UNION -> "union"
+                NAMESPACE -> "namespace"
+            }
+        }
     }
 
     companion object {

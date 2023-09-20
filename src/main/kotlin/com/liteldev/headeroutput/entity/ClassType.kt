@@ -153,33 +153,24 @@ open class ClassType(
     }
 
     private fun generateAntiReconstruction(): String {
-        val classType = if (this.type == TypeKind.STRUCT) "struct" else "class"
         val public = typeData.collectInstanceFunction()
             .filter { it.isConstructor() || (it.isOperator() && it.name == "operator=") }
-        val genOperator = public.none {
-            it.isOperator() && it.params.let { params ->
-                params.size == 1 && params[0].name == "$classType $name const &"
-            } // && it.valType.Name == "$classType $name &" Removed because of overload
-        }
-        val genEmptyParamConstructor = public.none { it.name == simpleName && it.params.isEmpty() }
-        val genCopyConstructor = public.none {
-            it.name == simpleName && it.params.let { params ->
-                params.size == 1 && params[0].name == "$classType $name const &"
-            }
-        }
+        val genOperator = public.none { it.isCopyOperator() }
+        val genEmptyParamConstructor = public.none { it.isDefaultConstructor() }
+        val genCopyConstructor = public.none { it.isCopyConstructor() }
         return if (!genOperator && !genEmptyParamConstructor && !genCopyConstructor) {
             ""
         } else StringBuilder(
             "public:\n    // prevent constructor by default\n"
         ).apply {
             if (genOperator) {
-                appendLine("    $simpleName& operator=($simpleName const &) = delete;")
+                appendLine("    $simpleName& operator=($simpleName const &);")
             }
             if (genCopyConstructor) {
-                appendLine("    $simpleName($simpleName const &) = delete;")
+                appendLine("    $simpleName($simpleName const &);")
             }
             if (genEmptyParamConstructor) {
-                appendLine("    $simpleName() = delete;")
+                appendLine("    $simpleName();")
             }
             appendLine()
         }.toString()
