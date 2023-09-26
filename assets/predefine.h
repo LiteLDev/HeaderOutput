@@ -104,7 +104,7 @@ template <typename T0, typename T1>
 class AutomaticID;
 class Dimension;
 using DimensionType = AutomaticID<Dimension, int>;
-// union GameRule::Value;
+namespace Bedrock {template <typename T, typename Err = std::error_code> class Result;}
 template <typename T0>
 class http_stl_allocator;
 using http_string  = std::basic_string<char, std::char_traits<char>, class http_stl_allocator<char>>;
