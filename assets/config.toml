@@ -24,12 +24,12 @@ regex = [
     { regex = "gsl::not_null<class Bedrock::NonOwnerPointer<(.*?)>>", to = "Bedrock::NotNullNonOwnerPtr<$1>" },
     { regex = "Bedrock::Threading::ThreadLocalObject<(.*), *std::allocator< *\\1 *> *>", to = "Bedrock::Threading::ThreadLocalObject<$1>" },
 
-    { regex = "TypedServerNetId<struct RecipeNetIdTag, uint, 0>", to = "RecipeNetId" },
-    { regex = "TypedServerNetId<struct CreativeItemNetIdTag, uint, 0>", to = "CreativeItemNetId" },
-    { regex = "TypedRuntimeId<struct ContainerRuntimeIdTag, uint, 0>", to = "ContainerRuntimeId" },
-    { regex = "TypedServerNetId<struct ItemStackNetIdTag, int, 0>", to = "ItemStackNetId" },
-    { regex = "TypedClientNetId<struct ItemStackRequestIdTag, int, 0>", to = "ItemStackRequestId" },
-    { regex = "TypedClientNetId<struct ItemStackLegacyRequestIdTag, int, 0>", to = "ItemStackLegacyRequestId" },
+    { regex = "class TypedServerNetId<struct RecipeNetIdTag, uint, 0>", to = "RecipeNetId" },
+    { regex = "class TypedServerNetId<struct CreativeItemNetIdTag, uint, 0>", to = "CreativeItemNetId" },
+    { regex = "class TypedRuntimeId<struct ContainerRuntimeIdTag, uint, 0>", to = "ContainerRuntimeId" },
+    { regex = "class TypedServerNetId<struct ItemStackNetIdTag, int, 0>", to = "ItemStackNetId" },
+    { regex = "class TypedClientNetId<struct ItemStackRequestIdTag, int, 0>", to = "ItemStackRequestId" },
+    { regex = "class TypedClientNetId<struct ItemStackLegacyRequestIdTag, int, 0>", to = "ItemStackLegacyRequestId" },
 
     { regex = "std::chrono::duration<int64, ?std::ratio<1, ?1000000000> ?>", to = "std::chrono::nanoseconds" },
     { regex = "std::chrono::duration<int64, ?std::ratio<1, ?1000000> ?>", to = "std::chrono::microseconds" },
