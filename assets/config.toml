@@ -15,34 +15,59 @@ regex = [
     # { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)int(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "int32_t" },
     { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)__int64(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "int64" },
     { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)__cdecl(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "" },
+
     { regex = "(?:enum class|class|struct) *(std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt)::", to = "$1::" },
+ 
     { regex = "class AutomaticID<class Dimension, ?int>", to = "DimensionType" },
     { regex = "Bedrock::Result<(.*), ?std::error_code>", to = "Bedrock::Result<$1>" },
+    { regex = "Bedrock::Result<(.*), ?std::error_code>", to = "Bedrock::Result<$1>" },
+    { regex = "gsl::not_null<class Bedrock::NonOwnerPointer<(.*?)>>", to = "Bedrock::NotNullNonOwnerPtr<$1>" },
+    { regex = "Bedrock::Threading::ThreadLocalObject<(.*), *std::allocator< *\\1 *> *>", to = "Bedrock::Threading::ThreadLocalObject<$1>" },
+
+    { regex = "TypedServerNetId<struct RecipeNetIdTag, uint, 0>", to = "RecipeNetId" },
+    { regex = "TypedServerNetId<struct CreativeItemNetIdTag, uint, 0>", to = "CreativeItemNetId" },
+    { regex = "TypedRuntimeId<struct ContainerRuntimeIdTag, uint, 0>", to = "ContainerRuntimeId" },
+    { regex = "TypedServerNetId<struct ItemStackNetIdTag, int, 0>", to = "ItemStackNetId" },
+    { regex = "TypedClientNetId<struct ItemStackRequestIdTag, int, 0>", to = "ItemStackRequestId" },
+    { regex = "TypedClientNetId<struct ItemStackLegacyRequestIdTag, int, 0>", to = "ItemStackLegacyRequestId" },
+
     { regex = "std::chrono::duration<int64, ?std::ratio<1, ?1000000000> ?>", to = "std::chrono::nanoseconds" },
     { regex = "std::chrono::duration<int64, ?std::ratio<1, ?1000000> ?>", to = "std::chrono::microseconds" },
     { regex = "std::chrono::duration<int64, ?std::ratio<1, ?1000> ?>", to = "std::chrono::milliseconds" },
     { regex = "std::chrono::duration<int64, ?std::ratio<1, ?1> ?>", to = "std::chrono::seconds" },
     { regex = "std::chrono::duration<int, ?std::ratio<60, ?1> ?>", to = "std::chrono::minutes" },
     { regex = "std::chrono::time_point<std::chrono::steady_clock, ?std::chrono::nanoseconds>", to = "std::chrono::steady_clock::time_point" },
+
     { regex = "std::basic_string<wchar_t, ?std::char_traits<wchar_t ?>, ?class http_stl_allocator<wchar_t ?> ?>", to = "http_wstring" },
     { regex = "std::basic_string<char, ?std::char_traits<char ?>, ?class http_stl_allocator<char ?> ?>", to = "http_string" },
     { regex = "std::basic_([a-z]*?)<wchar_t(, ?std::char_traits<wchar_t ?>)?(, ?std::allocator<wchar_t ?> ?)?>", to = "std::w$1" },
     { regex = "std::basic_([a-z]*?)<char(, ?std::char_traits<char ?>)?(, ?std::allocator<char ?> ?)?>", to = "std::$1" },
     { regex = "std::basic_string_view<char, ?std::char_traits<char ?> ?>", to = "std::string_view" },
-    { regex = "entt::basic_registry<(.*), *std::allocator< *\\1 *> *>", to = "entt::basic_registry<$1>" },
-    { regex = "entt::basic_dispatcher<std::allocator<void ?> ?>", to = "entt::dispatcher" },
+
+    { regex = "std::unordered_(.*?)map<(.*), *(.*), *std::hash< *\\2 *>, *std::equal_to< *\\2 *>, *std::allocator< *std::pair< *\\2 *const *, *\\3 *> *> *>", to = "std::unordered_$1map<$2,$3>" },
+    { regex = "std::unordered_map<(.*), *(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "std::unordered_map<$1,$2>" },
+    { regex = "std::(.*?)map<(.*), *(.*), *std::less< *\\2 *>, *std::allocator< *std::pair< *\\2 *const *, *\\3 *> *> *>", to = "std::$1map<$2,$3>" },
+    { regex = "std::map<(.*), *(.*), *std::less< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "std::map<$1,$2>" },
+    { regex = "std::set<(.*), *std::less< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::set<$1>" },
+    { regex = "std::unordered_set<(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::unordered_set<$1>" },
+    { regex = "std::set<(.*), *std::less< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::set<$1>" },
+    { regex = "std::unordered_set<(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::unordered_set<$1>" },
+
     { regex = "std::(\\w*)<(.*), *std::default_delete< *\\2 *> *>", to = "std::$1<$2>" },
-    { regex = "std::map<(.*), *(.*), *std::less< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "std::map<$1,$2>" },
-    { regex = "std::unordered_map<(.*), *(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "std::unordered_map<$1,$2>" },
-    { regex = "std::map<(.*), *(.*), *std::less< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "std::map<$1,$2>" },
-    { regex = "std::unordered_map<(.*), *(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "std::unordered_map<$1,$2>" },
-    { regex = "std::set<(.*), *std::less< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::set<$1>" },
-    { regex = "std::unordered_set<(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::unordered_set<$1>" },
-    { regex = "std::set<(.*), *std::less< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::set<$1>" },
-    { regex = "std::unordered_set<(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *\\1 *> *>", to = "std::unordered_set<$1>" },
+    { regex = "std::(\\w*)<(.*), *std::allocator< *\\2 *> *>", to = "std::$1<$2>" },
     { regex = "std::(\\w*)<(.*), *std::allocator< *\\2 *> *>", to = "std::$1<$2>" },
     { regex = "gsl::span<(.*), *-1>", to = "gsl::span<$1>" },
     { regex = "gsl::span<(.*), *-1>", to = "gsl::span<$1>" },
+
+    { regex = "entt::dense_map<(.*), *(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *std::pair< *\\1 *const *, *\\2 *> *> *>", to = "entt::dense_map<$1,$2>" },
+    { regex = "entt::dense_set<(.*), *std::hash< *\\1 *>, *std::equal_to< *\\1 *>, *std::allocator< *\\1 *> *>", to = "entt::dense_set<$1>" },
+    { regex = "entt::basic_registry<(.*), *std::allocator< *\\1 *> *>", to = "entt::basic_registry<$1>" },
+    { regex = "entt::basic_dispatcher<std::allocator<void ?> ?>", to = "entt::dispatcher" },
+
+    { regex = "std::map<std::string, class CompoundTagVariant, std::less<void>, std::allocator<std::pair<std::string const, class CompoundTagVariant>>>", to = "std::map<std::string, class CompoundTagVariant, std::less<void>>" },
+    { regex = "std::set<class HashedString, std::hash<class HashedString>, std::allocator<class HashedString>>", to = "std::set<class HashedString, std::hash<class HashedString>>" },
+    { regex = "std::unordered_map<::Enchant::Slot, std::string, struct EnchantSlotEnumHasher, std::equal_to<::Enchant::Slot>, std::allocator<std::pair<::Enchant::Slot const, std::string>>>", to = "std::unordered_map<::Enchant::Slot, std::string, struct EnchantSlotEnumHasher>" },
+    { regex = "entt::dense_set<class CommandRegistry::Symbol, struct CommandRegistry::SymbolHasher, std::equal_to<class CommandRegistry::Symbol>, std::allocator<class CommandRegistry::Symbol>>", to = "entt::dense_set<class CommandRegistry::Symbol, struct CommandRegistry::SymbolHasher>" },
 ]
 
 [exclusion]
@@ -170,7 +195,6 @@ regex = [
     { regex = "^HC.*", dst = "network", override = false },
     { regex = "^http.*", dst = "network", override = false },
     { regex = "^Web.*", dst = "network", override = false },
-    { regex = "^I[A-Z].*", dst = "common", override = false },
     { regex = "^Item.*", dst = "world/item/components", override = false },
     { regex = "^Legacy.*", dst = "deps/core/resource", override = false },
     { regex = ".*span.*", dst = "deps/core/utility", override = false },
@@ -236,4 +260,5 @@ regex = [
     { regex = "^librarySearch::.*", dst = "common", override = false },
     { regex = "^Realms.*", dst = "client/network/realms", override = false },
     { regex = ".*_st$", dst = "external/openssl", override = false },
+    { regex = "^I[A-Z].*", dst = "common", override = false },
 ]
