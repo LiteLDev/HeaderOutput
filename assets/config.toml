@@ -77,23 +77,26 @@ regex = [
     "^struct .*$",
     "^class .*$",
     ".*(@| |<).*",
-    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|absl|rtc|webrtc|cricket|dcsctp|sigslot).*",
+    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|absl|rtc|webrtc|cricket|dcsctp|sigslot|magic_enum).*",
 
-    "^unity_.*$",                      # preview
-    "^Concurrency(?:::.*)*$",          # microsft Concurrency, no usage. pplinterface.h
-    "_WSABUF",                         # ws2def.h
-    "addrinfo",                        # ws2def.h
-    "^sockaddr.*$",                    # ws2def.h ws2ipdef.h
-    "^.*_addr$",                       # inaddr.h in6addr.h
-    "_IP_ADAPTER_PREFIX_XP",           # iptypes.h
-    "_iobuf",                          # corecrt_wstdio.h
-    "tm",                              # corecrt_wtime.h
-    "_Mbstatet",                       # corecrt.h
-    "HWND__",                          # DirectX
-    "_WINHTTP_WEB_SOCKET_BUFFER_TYPE", # winhttp.h
-    "__std_win_error",                 # xfilesystem_abi.h
-    "srtp_event_data_t",               # libsrtp
-    "wspp_websocket_impl",             # websocketpp?
+    "^unity_.*$",                       # preview
+    "^Concurrency(?:::.*)*$",           # microsft Concurrency, no usage. pplinterface.h
+    "_WSABUF",                          # ws2def.h
+    "addrinfo",                         # ws2def.h
+    "^sockaddr.*$",                     # ws2def.h ws2ipdef.h
+    "^.*_addr$",                        # inaddr.h in6addr.h
+    "^_IP_ADAPTER_PREFIX_XP",           # iptypes.h
+    "^_iobuf",                          # corecrt_wstdio.h
+    "^tm",                              # corecrt_wtime.h
+    "^_Mbstatet",                       # corecrt.h
+    "^HWND__",                          # DirectX
+    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE", # winhttp.h
+    "^__std_win_error",                 # xfilesystem_abi.h
+    "^srtp_event_data_t",               # libsrtp
+    "^wspp_websocket_impl",             # websocketpp?
+    "^shared_ptr_cache",             # websocketpp?
+    "^static_string",                   # for mc
+    "^.*VariantBuilder",                # for mc
 ]
 
 [sort]
@@ -226,6 +229,7 @@ regex = [
     { regex = ".*Dimension.*", dst = "world/level/dimension", override = false },
     { regex = ".*GameVersion.*", dst = "resources", override = false },
     { regex = ".*Goal.*", dst = "world/actor/ai/goal", override = false },
+    { regex = ".*Block.*Component.*", dst = "world/level/block/components", override = false },
     { regex = ".*Block.*", dst = "world/level/block/utils", override = false },
     { regex = ".*Util.*", dst = "util", override = false },
     { regex = "^ComponentIte.*", dst = "world/item/components", override = false },
@@ -256,14 +260,20 @@ regex = [
     { regex = "^WearableItem.*Versioning.*", dst = "world/item/components/wearable", override = true },
     { regex = "^EquipItem.*Versioning.*", dst = "world/item/components/equip", override = true },
     { regex = "^Shareable.*Versioning.*", dst = "world/item/components/shareable", override = true },
+    { regex = "^BlockSelectionBoxComponentDescriptor.*", dst = "world/level/block/components/selectionbox", override = true },
+    { regex = "^BlockCollisionBoxComponentDescriptor.*", dst = "world/level/block/components/collisionbox", override = true },
+    { regex = "^BlockQueuedTickingComponentDescriptor.*", dst = "world/level/block/components/queuedticking", override = true },
     { regex = ".*Item.*Versioning::.*", dst = "world/item/components", override = false },
     { regex = "^ExplorationMap.*", dst = "world/item/components", override = false },
     { regex = ".*OperationNode.*", dst = "world/level/newbiome", override = false },
     { regex = "^MobMovement.*", dst = "world/actor/movement", override = false },
     { regex = "^PositionTrackingDB::.*", dst = "world/level", override = false },
     { regex = "^FeatureLoading::.*", dst = "world/level/levelgen/feature", override = false },
+    { regex = "^.*Feature.*", dst = "world/level/levelgen/feature", override = false },
     { regex = "^librarySearch::.*", dst = "common", override = false },
+    { regex = ".*GameplayHandler.*", dst = "gameplayhandlers", override = false },
     { regex = "^Realms.*", dst = "client/network/realms", override = false },
+    { regex = ".*Transformation.*", dst = "world/level/biome/components", override = false },
     { regex = ".*_st$", dst = "external/openssl", override = false },
     { regex = "^I[A-Z].*", dst = "common", override = false },
 ]
