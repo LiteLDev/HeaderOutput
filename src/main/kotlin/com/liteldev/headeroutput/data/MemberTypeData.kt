@@ -113,6 +113,16 @@ data class MemberTypeData(
 
     fun isVirtual() = storageClass == StorageClassType.Virtual
 
+    fun compare(other: MemberTypeData): Int {
+        if (this.name != other.name) return this.name.compareTo(other.name)
+        if (this.valType.name != other.valType.name) return this.valType.name.compareTo(other.valType.name)
+        if (this.params.size != other.params.size) return this.params.size - other.params.size
+        this.params.forEachIndexed { index, variableTypeData ->
+            if (variableTypeData.name != other.params[index].name) return variableTypeData.name.compareTo(other.params[index].name)
+        }
+        return 0
+    }
+
     companion object {
         //[0] const
         //[1] __ptr64 spec

@@ -39,6 +39,8 @@ open class ClassType(
                     funList.add(member)
                 }
             }
+            funList.sortWith { o1, o2 -> o1.compare(o2) }
+            varList.sortWith { o1, o2 -> o1.compare(o2) }
         }
         determineType(typeData.publicTypes, publicFunctions, publicVariables)
         determineType(typeData.publicStaticTypes, publicFunctions, publicVariables)

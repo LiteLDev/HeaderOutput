@@ -14,7 +14,7 @@ class NamespaceType(
             return@buildString
         }
         appendLine("    // NOLINTBEGIN")
-        typeData.publicTypes.sortedBy { it.name }.joinToString("\n\n") {
+        typeData.publicTypes.sortedWith { o1, o2 -> o1.compare(o2) }.joinToString("\n\n") {
             it.genFuncString(namespace = true)
         }.let(::appendLine)
         appendLine("    // NOLINTEND")
