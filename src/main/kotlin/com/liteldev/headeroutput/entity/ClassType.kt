@@ -275,7 +275,7 @@ open class ClassType(
         appendLine("// member accessor")
         appendLine("public:")
         appendLine("    // NOLINTBEGIN")
-        privateVariables.forEach {
+        members.forEach {
             val pureName = it.name.removeSuffix("[]")
             appendLine("    auto& $$pureName() { return $pureName; }\n")
         }
