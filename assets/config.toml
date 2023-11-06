@@ -77,8 +77,22 @@ regex = [
     "^struct .*$",
     "^class .*$",
     ".*(@| |<).*",
-    "^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|absl|rtc|webrtc|cricket|dcsctp|sigslot|magic_enum).*",
-
+    """^(?:std|\
+    gsl|\
+    entt|\
+    rapidjson|\
+    type_info|\
+    leveldb|\
+    asio|\
+    websocketpp|\
+    fmt|\
+    absl|\
+    rtc|\
+    webrtc|\
+    cricket|\
+    dcsctp|\
+    sigslot|\
+    magic_enum).*""",
     "^unity_.*$",                       # preview
     "^Concurrency(?:::.*)*$",           # microsft Concurrency, no usage. pplinterface.h
     "_WSABUF",                          # ws2def.h
@@ -94,7 +108,7 @@ regex = [
     "^__std_win_error",                 # xfilesystem_abi.h
     "^srtp_event_data_t",               # libsrtp
     "^wspp_websocket_impl",             # websocketpp?
-    "^shared_ptr_cache",             # websocketpp?
+    "^shared_ptr_cache",                # websocketpp?
     "^static_string",                   # for mc
     "^.*VariantBuilder",                # for mc
 ]

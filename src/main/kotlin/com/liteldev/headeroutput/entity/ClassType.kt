@@ -277,7 +277,7 @@ open class ClassType(
         appendLine("    // NOLINTBEGIN")
         members.forEach {
             val pureName = it.name.removeSuffix("[]")
-            appendLine("    auto& $$pureName() { return $pureName; }\n")
+            appendLine("    static auto& $$pureName() { return $pureName; }\n")
         }
         appendLine("    // NOLINTEND")
         trim()
