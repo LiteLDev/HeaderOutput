@@ -122,7 +122,10 @@ object HeaderOutput {
         originData = Json.parseToJsonElement(configText).jsonObject
         Objects.requireNonNull(originData["classes"], "origin data must contains classes field")
         typeDataMap.putAll(originData["classes"]!!.jsonObject.mapValues { entry ->
-            json.decodeFromJsonElement<TypeData>(entry.value)
+            runCatching { json.decodeFromJsonElement<TypeData>(entry.value) }.getOrNull() ?: run {
+                logger.error { "Fail to parse type data ${entry.key}" }
+                TypeData.empty()
+            }
         }.toMutableMap())
         typeDataMap.values.forEach { type ->
             var counter = 0
