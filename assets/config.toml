@@ -74,28 +74,29 @@ regex = [
 
 regex = [
     "^$",
+    "^.*\\(\\)$",
     "^struct .*$",
     "^class .*$",
     ".*(@| |<).*",
     """^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|absl|rtc|webrtc|cricket|dcsctp|sigslot|magic_enum).*""",
-    "^unity_.*$",                       # preview
-    "^Concurrency(?:::.*)*$",           # microsft Concurrency, no usage. pplinterface.h
-    "_WSABUF",                          # ws2def.h
-    "addrinfo",                         # ws2def.h
-    "^sockaddr.*$",                     # ws2def.h ws2ipdef.h
-    "^.*_addr$",                        # inaddr.h in6addr.h
-    "^_IP_ADAPTER_PREFIX_XP",           # iptypes.h
-    "^_iobuf",                          # corecrt_wstdio.h
-    "^tm",                              # corecrt_wtime.h
-    "^_Mbstatet",                       # corecrt.h
-    "^HWND__",                          # DirectX
-    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE", # winhttp.h
-    "^__std_win_error",                 # xfilesystem_abi.h
-    "^srtp_event_data_t",               # libsrtp
-    "^wspp_websocket_impl",             # websocketpp?
-    "^shared_ptr_cache",                # websocketpp?
-    "^static_string",                   # for mc
-    "^.*VariantBuilder",                # for mc
+    "^unity_.*$",                                                                                                                 # preview
+    "^Concurrency(?:::.*)*$",                                                                                                     # microsft Concurrency, no usage. pplinterface.h
+    "_WSABUF",                                                                                                                    # ws2def.h
+    "addrinfo",                                                                                                                   # ws2def.h
+    "^sockaddr.*$",                                                                                                               # ws2def.h ws2ipdef.h
+    "^.*_addr$",                                                                                                                  # inaddr.h in6addr.h
+    "^_IP_ADAPTER_PREFIX_XP",                                                                                                     # iptypes.h
+    "^_iobuf",                                                                                                                    # corecrt_wstdio.h
+    "^tm",                                                                                                                        # corecrt_wtime.h
+    "^_Mbstatet",                                                                                                                 # corecrt.h
+    "^HWND__",                                                                                                                    # DirectX
+    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE",                                                                                           # winhttp.h
+    "^__std_win_error",                                                                                                           # xfilesystem_abi.h
+    "^srtp_event_data_t",                                                                                                         # libsrtp
+    "^wspp_websocket_impl",                                                                                                       # websocketpp?
+    "^shared_ptr_cache",                                                                                                          # websocketpp?
+    "^static_string",                                                                                                             # for mc
+    "^.*VariantBuilder",                                                                                                          # for mc
 ]
 
 [sort]
@@ -113,6 +114,7 @@ parent = [
 
 regex = [
     { regex = ".*RakNet.*", dst = "deps/raknet", override = false },
+    { regex = "OreUI::.*", dst = "client/gui/oreui", override = false },
     { regex = ".*DataStructures.*", dst = "deps/raknet/data_structures", override = false },
     { regex = "^Has.*Filter$", dst = "world/actor/selectors", override = false },
     { regex = "^CameraPresetsInternals::.*", dst = "world/actor/common", override = false },
