@@ -77,22 +77,7 @@ regex = [
     "^struct .*$",
     "^class .*$",
     ".*(@| |<).*",
-    """^(?:std|\
-    gsl|\
-    entt|\
-    rapidjson|\
-    type_info|\
-    leveldb|\
-    asio|\
-    websocketpp|\
-    fmt|\
-    absl|\
-    rtc|\
-    webrtc|\
-    cricket|\
-    dcsctp|\
-    sigslot|\
-    magic_enum).*""",
+    """^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|absl|rtc|webrtc|cricket|dcsctp|sigslot|magic_enum).*""",
     "^unity_.*$",                       # preview
     "^Concurrency(?:::.*)*$",           # microsft Concurrency, no usage. pplinterface.h
     "_WSABUF",                          # ws2def.h
