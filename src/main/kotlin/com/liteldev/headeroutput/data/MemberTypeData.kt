@@ -62,6 +62,7 @@ data class MemberTypeData(
                 if (isConst()) append(" const")
                 if (isFunctionPtr) append(" -> ${valType.name}")
                 if (isPureCall()) append(" = 0")
+                else if (isVirtual() && !useFakeSymbol && symbol == "??1@@UEAA@XZ") append(" = default")
                 append(";")
             }
         }
