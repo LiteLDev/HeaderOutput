@@ -51,18 +51,26 @@ data class MemberTypeData(
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
                 else valType.name = valType.name.replaceEnumType()
                 val paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
-                if (isVirtual()) if (useFakeSymbol) append("MCVAPI ") else append("virtual ")
+
+                // Linkage specifiers
+                if (isVirtual())
+                    if (useFakeSymbol) append("MCVAPI ")
+                    else append("virtual ")
                 else append("MCAPI ")
+
                 if (!(isPtrCall() || isVirtual() || namespace)) append("static ")
                 if ((isConstructor() && !isCopyConstructor() && !isMoveConstructor() && params.size == 1) || isConversionOperator())
                     append("explicit ")
                 if (isFunctionPtr) append("auto ")
                 else if (valType.name != "") append("${valType.name} ")
                 append("$name(${paramsString})")
+                
                 if (isConst()) append(" const")
                 if (isFunctionPtr) append(" -> ${valType.name}")
-                if (isPureCall()) append(" = 0")
-                else if (isVirtual() && !useFakeSymbol && symbol == "??1@@UEAA@XZ") append(" = default")
+                if (isPureCall())
+                    append(" = 0")
+                else if (isVirtual() && !useFakeSymbol && symbol.startsWith("__gen_"))
+                    append(" = default")
                 append(";")
             }
         }
