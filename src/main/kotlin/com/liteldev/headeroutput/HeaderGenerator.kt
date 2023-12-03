@@ -66,6 +66,10 @@ object HeaderGenerator {
     private fun generateNamespace(type: BaseType) {
         require(type.isNamespace()) { "${type.name} is not namespace" }
 
+        if (type.typeData.publicTypes.isEmpty()) {
+            return
+        }
+
         val file = File(GeneratorConfig.generatePath, type.path)
         file.parentFile.mkdirs()
         file.writeText(
