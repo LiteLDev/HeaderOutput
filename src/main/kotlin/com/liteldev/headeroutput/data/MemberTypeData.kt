@@ -17,6 +17,7 @@ data class MemberTypeData(
     @SerialName("namespace") val namespace: String, // Mob
     @SerialName("name") var name: String, // hasComponent
     @SerialName("params") val params: List<VariableTypeData> = emptyList(),
+    @SerialName("params_name") val paramsName: List<String> = emptyList(),
     @SerialName("flag_bits") var flags: Int, // 1
     @SerialName("rva") val rva: Long, // 13417264
     @SerialName("symbol") var symbol: String, // ?hasComponent@Mob@@UEBA_NAEBVHashedString@@@Z
@@ -50,8 +51,18 @@ data class MemberTypeData(
                     valType.name = ""
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
                 else valType.name = valType.name.replaceEnumType()
-                val paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
 
+                var paramsString = ""
+                val paramNameBeginIndex = if (hasFlag(FLAG_PTR_CALL)) 1 else 0
+                if (paramsName.isNotEmpty() && params.size + paramNameBeginIndex == paramsName.size) {
+                    // params name available
+                    for (i in params.indices) {
+                        paramsString += "${params[i].name} ${paramsName[i + paramNameBeginIndex]}"
+                        if (i != params.size - 1) paramsString += ", "
+                    }
+                } else {
+                    paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
+                }
                 // Linkage specifiers
                 if (isVirtual())
                     if (useFakeSymbol) append("MCVAPI ")
