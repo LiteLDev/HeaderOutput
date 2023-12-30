@@ -79,8 +79,6 @@ regex = [
     "^class .*$",
     ".*(@| |<).*",
     """^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|magic_enum).*""",
-    "^cricket::SctpDataContentDescription",
-    "^cricket::UnsupportedContentDescription",
     "^unity_.*$",                                                                          # preview
     "^Concurrency(?:::.*)*$",                                                              # microsft Concurrency, no usage. pplinterface.h
     "_WSABUF",                                                                             # ws2def.h
