@@ -57,7 +57,12 @@ data class MemberTypeData(
                 if (paramsName.isNotEmpty() && params.size + paramNameBeginIndex == paramsName.size) {
                     // params name available
                     for (i in params.indices) {
-                        paramsString += "${params[i].name} ${paramsName[i + paramNameBeginIndex]}"
+                        var paramStr = params[i].name;
+                        if(paramStr.contains("*)(")  && paramStr.endsWith(")")) {
+                            paramsString += paramStr.replace("*)(", "*${paramsName[i + paramNameBeginIndex]})(");
+                        } else {
+                            paramsString += "${paramStr} ${paramsName[i + paramNameBeginIndex]}"
+                        }
                         if (i != params.size - 1) paramsString += ", "
                     }
                 } else {
