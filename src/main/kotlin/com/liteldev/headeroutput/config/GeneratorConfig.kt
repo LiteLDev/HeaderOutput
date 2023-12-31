@@ -26,6 +26,7 @@ object GeneratorConfig {
     lateinit var replacementRegex: List<Pair<Regex, String>>
 
     private lateinit var excludeRegexList: List<Regex>
+    private lateinit var ignoreRegexList: List<Regex>
     private lateinit var generatorConfigData: OutputConfig
 
 
@@ -45,11 +46,18 @@ object GeneratorConfig {
         enableRelativePath = generatorConfigData.config.enableRelativePath
         rootPath = generatorConfigData.config.rootPath
         excludeRegexList = generatorConfigData.exclusion.regex.map { it.toRegex() }
+        ignoreRegexList = generatorConfigData.ignore.regex.map { it.toRegex() }
         replacementRegex = generatorConfigData.replacement.regex.map { it.regex.toRegex() to it.to }
     }
 
-    fun isExcludedFromGeneration(name: String): Boolean {
+    // Exclude means exclude from the origin data, and do not generate the dummy type
+    fun isExcluded(name: String): Boolean {
         return excludeRegexList.any { name.matches(it) }
+    }
+
+    // Ignore means ignore from the origin data, and generate the dummy type
+    fun isIgnored(name: String): Boolean {
+        return ignoreRegexList.any { name.matches(it) }
     }
 
     fun getSortRules() = generatorConfigData.sort

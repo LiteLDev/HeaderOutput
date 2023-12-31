@@ -7,6 +7,7 @@ data class OutputConfig(
     val config: Config,
     val exclusion: Exclusion,
     val sort: Sort,
+    val ignore: Ignore,
     val replacement: Replacement
 ) {
     @Serializable
@@ -33,6 +34,11 @@ data class OutputConfig(
 
     @Serializable
     data class Exclusion(
+        val regex: List<String>
+    )
+
+    @Serializable
+    data class Ignore(
         val regex: List<String>
     )
 

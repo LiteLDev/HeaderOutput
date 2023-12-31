@@ -149,7 +149,8 @@ object HeaderOutput {
         val notIdentifiedTypes = mutableSetOf<String>()
         logger.info { "Loading types..." }
         typeDataMap
-            .filterNot { (k, _) -> GeneratorConfig.isExcludedFromGeneration(k) }
+            .filterNot { (k, _) -> GeneratorConfig.isExcluded(k) }
+            .filterNot { (k, _) -> GeneratorConfig.isIgnored(k) }
             .forEach { (typeName, type) ->
                 TypeManager.addType(
                     typeName,

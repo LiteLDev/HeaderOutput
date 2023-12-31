@@ -116,7 +116,7 @@ object TypeManager {
     private fun createDummyClass(name: String, type: TypeKind? = null): BaseType? {
         require(!hasType(name)) { "type $name already exists" }
 
-        if (GeneratorConfig.isExcludedFromGeneration(name)) {
+        if (GeneratorConfig.isExcluded(name)) {
             return null
         }
 
