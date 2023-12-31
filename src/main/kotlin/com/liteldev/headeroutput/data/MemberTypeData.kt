@@ -59,7 +59,7 @@ data class MemberTypeData(
                         params.joinToString(", ") {
                             if (it.name.contains("*)(") && it.name.endsWith(")"))
                                 it.name.replace("*)(", "*${paramsName[i++]})(");
-                            else "$it ${paramsName[i++]}"
+                            else "${it.name} ${paramsName[i++]}"
                         }
                     } else {
                         params.joinToString(", ") { it.name }
