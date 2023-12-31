@@ -52,22 +52,19 @@ data class MemberTypeData(
                 else if (valType.name.isBlank() && !isConstructor() && !isDestructor()) valType.name = "auto"
                 else valType.name = valType.name.replaceEnumType()
 
-                var paramsString = ""
-                val paramNameBeginIndex = if (hasFlag(FLAG_PTR_CALL)) 1 else 0
-                if (paramsName.isNotEmpty() && params.size + paramNameBeginIndex == paramsName.size) {
-                    // params name available
-                    for (i in params.indices) {
-                        var paramStr = params[i].name;
-                        if(paramStr.contains("*)(")  && paramStr.endsWith(")")) {
-                            paramsString += paramStr.replace("*)(", "*${paramsName[i + paramNameBeginIndex]})(");
-                        } else {
-                            paramsString += "${paramStr} ${paramsName[i + paramNameBeginIndex]}"
+                val paramNameBeginIndex = if (isPtrCall()) 1 else 0
+                val paramsString =
+                    if (paramsName.isNotEmpty() && params.size + paramNameBeginIndex == paramsName.size) {
+                        var i = paramNameBeginIndex
+                        params.joinToString(", ") {
+                            if (it.name.contains("*)(") && it.name.endsWith(")"))
+                                it.name.replace("*)(", "*${paramsName[i++]})(");
+                            else "$it ${paramsName[i++]}"
                         }
-                        if (i != params.size - 1) paramsString += ", "
-                    }
-                } else {
-                    paramsString = params.joinToString(", ") { it.name }.replaceEnumType()
-                }
+                    } else {
+                        params.joinToString(", ") { it.name }
+                    }.replaceEnumType()
+
                 // Linkage specifiers
                 if (isVirtual())
                     if (useFakeSymbol) append("MCVAPI ")
@@ -80,7 +77,7 @@ data class MemberTypeData(
                 if (isFunctionPtr) append("auto ")
                 else if (valType.name != "") append("${valType.name} ")
                 append("$name(${paramsString})")
-                
+
                 if (isConst()) append(" const")
                 if (isFunctionPtr) append(" -> ${valType.name}")
                 if (isPureCall())
@@ -158,7 +155,7 @@ data class MemberTypeData(
 
         const val START_BLANK_SPACE = 4
 
-        val typeMatchRegex = Regex("enum\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
+        private val typeMatchRegex = Regex("enum\\s+([a-zA-Z0-9_]+(?:::[a-zA-Z0-9_]+)*)")
         fun String.replaceEnumType(): String {
             var result = this
             typeMatchRegex.findAll(this).forEach { matchResult ->
