@@ -79,24 +79,25 @@ regex = [
     "^class .*$",
     ".*(@| |<).*",
     """^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|magic_enum).*""",
-    "^unity_.*$",                                                                          # preview
-    "^Concurrency(?:::.*)*$",                                                              # microsft Concurrency, no usage. pplinterface.h
-    "_WSABUF",                                                                             # ws2def.h
-    "addrinfo",                                                                            # ws2def.h
-    "^sockaddr.*$",                                                                        # ws2def.h ws2ipdef.h
-    "^.*_addr$",                                                                           # inaddr.h in6addr.h
-    "^_IP_ADAPTER_PREFIX_XP",                                                              # iptypes.h
-    "^_iobuf",                                                                             # corecrt_wstdio.h
-    "^tm",                                                                                 # corecrt_wtime.h
-    "^_Mbstatet",                                                                          # corecrt.h
-    "^HWND__",                                                                             # DirectX
-    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE",                                                    # winhttp.h
-    "^__std_win_error",                                                                    # xfilesystem_abi.h
-    "^srtp_event_data_t",                                                                  # libsrtp
-    "^wspp_websocket_impl",                                                                # websocketpp?
-    "^shared_ptr_cache",                                                                   # websocketpp?
-    "^static_string",                                                                      # for mc
-    "^.*VariantBuilder",                                                                   # for mc
+    """^(?:NetherNet|webrtc|rtc|absl|cricket|dcsctp|sigslot|websocketpp|fmt|magic_enum).*""", # NetherNet
+    "^unity_.*$",                                                                             # preview
+    "^Concurrency(?:::.*)*$",                                                                 # microsft Concurrency, no usage. pplinterface.h
+    "_WSABUF",                                                                                # ws2def.h
+    "addrinfo",                                                                               # ws2def.h
+    "^sockaddr.*$",                                                                           # ws2def.h ws2ipdef.h
+    "^.*_addr$",                                                                              # inaddr.h in6addr.h
+    "^_IP_ADAPTER_PREFIX_XP",                                                                 # iptypes.h
+    "^_iobuf",                                                                                # corecrt_wstdio.h
+    "^tm",                                                                                    # corecrt_wtime.h
+    "^_Mbstatet",                                                                             # corecrt.h
+    "^HWND__",                                                                                # DirectX
+    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE",                                                       # winhttp.h
+    "^__std_win_error",                                                                       # xfilesystem_abi.h
+    "^srtp_event_data_t",                                                                     # libsrtp
+    "^wspp_websocket_impl",                                                                   # websocketpp?
+    "^shared_ptr_cache",                                                                      # websocketpp?
+    "^static_string",                                                                         # for mc
+    "^.*VariantBuilder",                                                                      # for mc
 ]
 
 [sort]
@@ -113,15 +114,15 @@ parent = [
 ]
 
 regex = [
-    { regex = "^NetherNet::.*", dst = "network/nethernet", override = true },
-    { regex = "^webrtc.*", dst = "deps/webrtc", override = true },
-    { regex = "^rtc::webrtc_logging_impl::ToStringVal$", dst = "deps/webrtc", override = true },
-    { regex = "^absl.*", dst = "deps/webrtc/absl", override = true },
-    { regex = "^rtc.*", dst = "deps/webrtc/rtc", override = true },
-    { regex = "^cricket::.*ContentDescription", dst = "deps/webrtc/cricket/description", override = true },
-    { regex = "^cricket.*", dst = "deps/webrtc/cricket", override = true },
-    { regex = "^dcsctp.*", dst = "deps/webrtc/dcsctp", override = true },
-    { regex = "^sigslot.*", dst = "deps/webrtc/sigslot", override = true },
+    # { regex = "^NetherNet::.*", dst = "network/nethernet", override = true },
+    # { regex = "^webrtc.*", dst = "deps/webrtc", override = true },
+    # { regex = "^rtc::webrtc_logging_impl::ToStringVal$", dst = "deps/webrtc", override = true },
+    # { regex = "^absl.*", dst = "deps/webrtc/absl", override = true },
+    # { regex = "^rtc.*", dst = "deps/webrtc/rtc", override = true },
+    # { regex = "^cricket::.*ContentDescription", dst = "deps/webrtc/cricket/description", override = true },
+    # { regex = "^cricket.*", dst = "deps/webrtc/cricket", override = true },
+    # { regex = "^dcsctp.*", dst = "deps/webrtc/dcsctp", override = true },
+    # { regex = "^sigslot.*", dst = "deps/webrtc/sigslot", override = true },
     { regex = ".*RakNet.*", dst = "deps/raknet", override = false },
     { regex = "OreUI::.*", dst = "client/gui/oreui", override = false },
     { regex = ".*DataStructures.*", dst = "deps/raknet/data_structures", override = false },
