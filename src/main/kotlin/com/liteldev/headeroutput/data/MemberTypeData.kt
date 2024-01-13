@@ -57,8 +57,10 @@ data class MemberTypeData(
                     if (paramsName.isNotEmpty() && params.size + paramNameBeginIndex == paramsName.size) {
                         var i = paramNameBeginIndex
                         params.joinToString(", ") {
-                            if (it.name.contains("*)(") && it.name.endsWith(")"))
-                                it.name.replace("*)(", "*${paramsName[i++]})(");
+                            if (it.name.contains("*)(") && (it.name.endsWith(")") || it.name.endsWith(") const")))
+                                it.name.replace("*)(", "*${paramsName[i++]})(")
+                            else if (it.name.contains("&)(") && it.name.endsWith(")") || it.name.endsWith(") const"))
+                                it.name.replace("&)(", "&${paramsName[i++]})(")
                             else "${it.name} ${paramsName[i++]}"
                         }
                     } else {
