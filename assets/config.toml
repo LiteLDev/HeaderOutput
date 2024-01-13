@@ -98,6 +98,7 @@ regex = [
     "^shared_ptr_cache",                                                                      # websocketpp?
     "^static_string",                                                                         # for mc
     "^.*VariantBuilder",                                                                      # for mc
+    "^nonstd::.*",                                                                            # for expected_lite
 ]
 
 [ignore]
@@ -264,7 +265,6 @@ regex = [
     { regex = "^OS::.*", dst = "external/lib_http_client", override = false },
     { regex = "^cg::.*", dst = "deps/core_graphics/common", override = false },
     { regex = "^SFAT::.*", dst = "external/sfat", override = false },
-    { regex = "^nonstd::.*", dst = "external/nonstd", override = false },
     { regex = "^qrcodegen::.*", dst = "external/qrcodegen", override = false },
     { regex = "^storeSearch::.*", dst = "client/store", override = false },
     { regex = "^SFAT::.*", dst = "external/sfat", override = false },
