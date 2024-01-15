@@ -1,6 +1,6 @@
 # HeaderOutput
 
-_part of LiteLoaderBDS Toolchain, is used to generate BDS header._
+_part of LeviLamina Toolchain, to generate BDS header._
 
 ___
 
