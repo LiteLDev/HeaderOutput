@@ -5,6 +5,7 @@ enableRelativePath = false
 [replacement]
 
 regex = [
+    { regex = "\\(void\\)", to = "()" },
     { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned char(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "uchar" },
     { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned short(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "ushort" },
     { regex = "(?<![0-9]|[a-z]|[A-Z]|-|_|::)unsigned int(?![0-9]|[a-z]|[A-Z]|-|_|::)", to = "uint" },
@@ -21,7 +22,7 @@ regex = [
     { regex = "class AutomaticID<class Dimension, ?int>", to = "DimensionType" },
     { regex = "Bedrock::Result<(.*), ?std::error_code>", to = "Bedrock::Result<$1>" },
     { regex = "Bedrock::Result<(.*), ?std::error_code>", to = "Bedrock::Result<$1>" },
-    { regex = "gsl::not_null<class Bedrock::NonOwnerPointer<(.*?)>>", to = "Bedrock::NotNullNonOwnerPtr<$1>" },
+    { regex = "gsl::not_null< ?class Bedrock::NonOwnerPointer<(.*?)> ?>", to = "Bedrock::NotNullNonOwnerPtr<$1>" },
     { regex = "Bedrock::Threading::ThreadLocalObject<(.*), *std::allocator< *\\1 *> *>", to = "Bedrock::Threading::ThreadLocalObject<$1>" },
 
     { regex = "class TypedServerNetId<struct RecipeNetIdTag, uint, 0>", to = "RecipeNetId" },
@@ -78,27 +79,26 @@ regex = [
     "^struct .*$",
     "^class .*$",
     ".*(@| |<).*",
-    """^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|magic_enum).*""",
-    """^(?:NetherNet|webrtc|rtc|absl|cricket|dcsctp|sigslot|websocketpp|fmt|magic_enum).*""", # NetherNet
-    "^unity_.*$",                                                                             # preview
-    "^Concurrency(?:::.*)*$",                                                                 # microsft Concurrency, no usage. pplinterface.h
-    "_WSABUF",                                                                                # ws2def.h
-    "addrinfo",                                                                               # ws2def.h
-    "^sockaddr.*$",                                                                           # ws2def.h ws2ipdef.h
-    "^.*_addr$",                                                                              # inaddr.h in6addr.h
-    "^_IP_ADAPTER_PREFIX_XP",                                                                 # iptypes.h
-    "^_iobuf",                                                                                # corecrt_wstdio.h
-    "^tm",                                                                                    # corecrt_wtime.h
-    "^_Mbstatet",                                                                             # corecrt.h
-    "^HWND__",                                                                                # DirectX
-    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE",                                                       # winhttp.h
-    "^__std_win_error",                                                                       # xfilesystem_abi.h
-    "^srtp_event_data_t",                                                                     # libsrtp
-    "^wspp_websocket_impl",                                                                   # websocketpp?
-    "^shared_ptr_cache",                                                                      # websocketpp?
-    "^static_string",                                                                         # for mc
-    "^.*VariantBuilder",                                                                      # for mc
-    "^nonstd::.*",                                                                            # for expected_lite
+    """^(?:std|gsl|entt|rapidjson|type_info|leveldb|asio|websocketpp|fmt|magic_enum|nonstd).*""",
+    """^(?:NetherNet|webrtc|rtc|absl|cricket|dcsctp|sigslot|websocketpp|fmt|magic_enum).*""",     # NetherNet
+    "^unity_.*$",                                                                                 # preview
+    "^Concurrency(?:::.*)*$",                                                                     # microsft Concurrency, no usage. pplinterface.h
+    "_WSABUF",                                                                                    # ws2def.h
+    "addrinfo",                                                                                   # ws2def.h
+    "^sockaddr.*$",                                                                               # ws2def.h ws2ipdef.h
+    "^.*_addr$",                                                                                  # inaddr.h in6addr.h
+    "^_IP_ADAPTER_PREFIX_XP",                                                                     # iptypes.h
+    "^_iobuf",                                                                                    # corecrt_wstdio.h
+    "^tm",                                                                                        # corecrt_wtime.h
+    "^_Mbstatet",                                                                                 # corecrt.h
+    "^HWND__",                                                                                    # DirectX
+    "^_WINHTTP_WEB_SOCKET_BUFFER_TYPE",                                                           # winhttp.h
+    "^__std_win_error",                                                                           # xfilesystem_abi.h
+    "^srtp_event_data_t",                                                                         # libsrtp
+    "^wspp_websocket_impl",                                                                       # websocketpp?
+    "^shared_ptr_cache",                                                                          # websocketpp?
+    "^static_string",                                                                             # for mc
+    "^.*VariantBuilder",                                                                          # for mc
 ]
 
 [ignore]
@@ -140,6 +140,7 @@ regex = [
     { regex = "^Crypto::.*", dst = "deps/crypto", override = false },
     { regex = "^AgentCommands::.*", dst = "world/actor/agent", override = true },
     { regex = ".*Packet$", dst = "network/packet", override = false },
+    { regex = ".*PacketHandler.*$", dst = "network", override = false },
     { regex = "^mce::.*", dst = "deps/core/mce", override = false },
     { regex = "^ScriptModuleMinecraftServerUI.*", dst = "scripting/modules/minecraft_ui", override = false },
     { regex = "^ScriptModuleMinecraftServerAdmin.*", dst = "scripting/modules/minecraft_server_admin", override = false },

@@ -658,6 +658,7 @@
     "ClientChunkGenerationDifferenceData": "world/level/chunk",
     "ClientChunkGenerationValidationData": "world/level/chunk",
     "ClientChunkGenerationValidationDataUI": "world/level/chunk",
+    "WallConnectionTypeHash": "world/level/block/utils",
     "BlockUtils": "world/level/block/utils",
     "BlockChange": "world/level/block/utils",
     "CopperSlabInternal": "world/level/block/utils",
