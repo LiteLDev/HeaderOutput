@@ -302,4 +302,6 @@ regex = [
     { regex = ".*Transformation.*", dst = "world/level/biome/components", override = false },
     { regex = ".*_st$", dst = "external/openssl", override = false },
     { regex = "^I[A-Z].*", dst = "common", override = false },
+    { regex = "^ScriptModuleMinecraftDebugUtilities::.*", dst = "scripting/modules/minecraft/debug", override = true },
+    { regex = "^BlockEvents::.*", dst = "world/level/block/utils/blockEvents", override = true }
 ]
