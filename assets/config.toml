@@ -179,7 +179,8 @@ regex = [
     { regex = "^Command.*Flag$", dst = "server/commands/flags", override = false },
     { regex = ".*Flag$", dst = "entity/flags", override = false },
     { regex = ".*Test$", dst = "world/filters", override = false },
-    { regex = "^Network.*", dst = "network", override = false },
+    { regex = "Network.*", dst = "network", override = false },
+    { regex = ".*NetworkSystem.*", dst = "network", override = false },
     { regex = "^UpdateBoundingBox.*", dst = "entity/systems/common/boundingbox", override = false },
     { regex = ".*System.*", dst = "entity/systems/common", override = false },
     { regex = "^Util::.*", dst = "deps/core/utility", override = false },
@@ -303,5 +304,5 @@ regex = [
     { regex = ".*_st$", dst = "external/openssl", override = false },
     { regex = "^I[A-Z].*", dst = "common", override = false },
     { regex = "^ScriptModuleMinecraftDebugUtilities::.*", dst = "scripting/modules/minecraft/debug", override = true },
-    { regex = "^BlockEvents::.*", dst = "world/level/block/events", override = true }
+    { regex = "^BlockEvents::.*", dst = "world/level/block/events", override = true },
 ]
