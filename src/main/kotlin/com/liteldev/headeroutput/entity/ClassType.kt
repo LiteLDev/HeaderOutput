@@ -221,7 +221,7 @@ open class ClassType(
             if (protectedVariables.isEmpty()) {
                 return ""
             }
-            appendLine("protected:")
+            appendLine("    // protected:")
             appendLine("    // NOLINTBEGIN")
             protectedVariables.let(::generateMembers).let(::append)
             appendLine("    // NOLINTEND")
@@ -246,7 +246,7 @@ open class ClassType(
             if (privateVariables.isEmpty()) {
                 return ""
             }
-            appendLine("private:")
+            appendLine("    // private:")
             appendLine("    // NOLINTBEGIN")
             privateVariables.let(::generateMembers).let(::append)
             appendLine("    // NOLINTEND")
