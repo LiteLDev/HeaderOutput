@@ -94,7 +94,7 @@ open class ClassType(
         append(generatePrivate())
         append(generateProtected(genFunc = false))
         append(generatePrivate(genFunc = false))
-        append(generateMemberAccessor())
+        // append(generateMemberAccessor())
         appendLine("};")
     }
 
