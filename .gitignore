@@ -34,3 +34,4 @@ bin
 /config.toml
 /config.json
 /declareMap.json
+/.vs
