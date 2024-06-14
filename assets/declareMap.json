@@ -2799,6 +2799,7 @@
     "Interactions": "world/actor/interactions",
     "Interactions::Mining": "world/actor/interactions",
     "Interactions::Mining::ILevelDependencies": "world/actor/interactions",
+    "Interactions::Mining::SideEffectDependencies": "world/actor/interactions",
     "Pos": "world",
     "Facing": "world",
     "BlockID": "world",
@@ -5087,5 +5088,14 @@
     "KeyManager": "certificates",
     "Certificate": "certificates",
     "PrivateKeyManager": "certificates",
-    "ExtendedCertificate": "certificates"
+    "ExtendedCertificate": "certificates",
+    "CertificateThumbprintSignatureType": "certificates",
+    "DamageSensorComponentVersions": "entity/components/version",
+    "EquipmentTable": "common",
+    "EquipmentTableDropChance": "common",
+    "History": "common",
+    "MobEffectImmunityDefinition": "entity/components",
+    "PublicKeySignatureType": "deps/raknet",
+    "UpgradePatchHelpers": "common",
+    "VecXZ": "math"
 }

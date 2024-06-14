@@ -224,6 +224,7 @@ regex = [
     { regex = "^BlendingDataFactoryUtil.*", dst = "world/level/storage", override = false },
     { regex = "^Puv.*", dst = "deps/puv", override = false },
     { regex = "^Puv::v1_20_50.*", dst = "deps/puv/v1_20_50", override = true },
+    { regex = "^Puv::v1_20_60.*", dst = "deps/puv/v1_20_60", override = true },
     { regex = "^Puv::v1_20_80.*", dst = "deps/puv/v1_20_80", override = true },
     { regex = "^snappy.*", dst = "deps/snappy", override = false },
     { regex = "^VolumeInstanceData.*", dst = "volume", override = false },
