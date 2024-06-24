@@ -5097,5 +5097,7 @@
     "MobEffectImmunityDefinition": "entity/components",
     "PublicKeySignatureType": "deps/raknet",
     "UpgradePatchHelpers": "common",
-    "VecXZ": "math"
+    "VecXZ": "math",
+    "UpdateSubChunkBlocksChangedInfo": "mc/network/packet",
+    "UpdateSubChunkNetworkBlockInfo": "mc/network/packet"
 }
