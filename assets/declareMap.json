@@ -5098,6 +5098,6 @@
     "PublicKeySignatureType": "deps/raknet",
     "UpgradePatchHelpers": "common",
     "VecXZ": "math",
-    "UpdateSubChunkBlocksChangedInfo": "mc/network/packet",
-    "UpdateSubChunkNetworkBlockInfo": "mc/network/packet"
+    "UpdateSubChunkBlocksChangedInfo": "network/packet",
+    "UpdateSubChunkNetworkBlockInfo": "network/packet"
 }
