@@ -36,9 +36,7 @@ data class MemberTypeData(
         var origin = buildString {
             val isFunctionPtr = valType.name.contains("*)(") && valType.name.endsWith(")")
             val infos = mutableListOf<String>()
-            if (vIndex != null) infos.add("vIndex: $vIndex")
-            if (symbol.isNotEmpty()) infos.add("symbol: $symbol")
-            appendIndented("// ${infos.joinToString(", ")}")
+            if (vIndex != null) appendIndented("// vIndex: $vIndex")
             appendSpace(START_BLANK_SPACE)
             if (isStaticGlobalVariable()) {
                 append("MCAPI ")
