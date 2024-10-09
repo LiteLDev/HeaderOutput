@@ -26,6 +26,7 @@ abstract class BaseType(
     val forwardDeclareList: MutableSet<String> = mutableSetOf()
 
     val simpleName = name.substringAfterLast("::")
+    val namespace = name.substringBeforeLast("::")
     val fullEscapeName = name.replace("::", "_")
     val fullUpperEscapeName = fullEscapeName.uppercase(Locale.getDefault())
 
@@ -53,6 +54,17 @@ abstract class BaseType(
             if (this is ClassType) {
                 val parentRules = GeneratorConfig.getSortRules().parent
                 parentRules.find { this.typeData.parentTypes.contains(it.parent) || this.name == it.parent }
+                    ?.let {
+                        return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+                    }
+                val parentRules = GeneratorConfig.getSortRules().namespace
+                parentRules.find { this.namespace.startsWith(it.namespace) }
+                    ?.let {
+                        return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
+                    }
+            } else if (this is NamespaceType) {
+                val parentRules = GeneratorConfig.getSortRules().namespace
+                parentRules.find { this.name.startsWith(it.namespace) }
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
