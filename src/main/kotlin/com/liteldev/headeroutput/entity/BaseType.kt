@@ -26,7 +26,7 @@ abstract class BaseType(
     val forwardDeclareList: MutableSet<String> = mutableSetOf()
 
     val simpleName = name.substringAfterLast("::")
-    val namespace = name.substringBeforeLast("::")
+    val namespace = name.substringBeforeLast("::", "::")
     val fullEscapeName = name.replace("::", "_")
     val fullUpperEscapeName = fullEscapeName.uppercase(Locale.getDefault())
 
