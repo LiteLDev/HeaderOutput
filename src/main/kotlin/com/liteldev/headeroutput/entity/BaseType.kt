@@ -56,9 +56,6 @@ abstract class BaseType(
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
-                if (this.parents.isNotEmpty()) {
-                    return@run "${this.parents[0].path.substringBeforeLast("/", ".")}/${this.simpleName}.$HEADER_SUFFIX"
-                }
             }
             regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
                 return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
