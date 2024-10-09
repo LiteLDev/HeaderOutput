@@ -16,11 +16,18 @@ data class OutputConfig(
     @Serializable
     data class Sort(
         val parent: List<Parent>,
+        val namespace: List<Namespace>,
         val regex: List<Regex>
     ) {
         @Serializable
         data class Parent(
             val parent: String,
+            val dst: String
+        )
+
+        @Serializable
+        data class Namespace(
+            val namespace: String,
             val dst: String
         )
 
