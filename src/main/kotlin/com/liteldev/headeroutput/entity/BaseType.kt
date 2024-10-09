@@ -57,14 +57,16 @@ abstract class BaseType(
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
+            }
+            if (this is NamespaceType) {
                 val namespaceRules = GeneratorConfig.getSortRules().namespace
-                namespaceRules.find { this.namespace.startsWith(it.namespace) }
+                namespaceRules.find { this.name.startsWith(it.namespace) }
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
-            } else if (this is NamespaceType) {
+            } else {
                 val namespaceRules = GeneratorConfig.getSortRules().namespace
-                namespaceRules.find { this.name.startsWith(it.namespace) }
+                namespaceRules.find { this.namespace.startsWith(it.namespace) }
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
