@@ -26,7 +26,7 @@ abstract class BaseType(
     val forwardDeclareList: MutableSet<String> = mutableSetOf()
 
     val simpleName = name.substringAfterLast("::")
-    val namespace = name.substringBeforeLast("::", "::")
+    val namespace = name.substringBeforeLast("::", "") + "::"
     val fullEscapeName = name.replace("::", "_")
     val fullUpperEscapeName = fullEscapeName.uppercase(Locale.getDefault())
 
@@ -60,13 +60,13 @@ abstract class BaseType(
             }
             if (this is NamespaceType) {
                 val namespaceRules = GeneratorConfig.getSortRules().namespace
-                namespaceRules.find { this.name.startsWith(it.namespace) }
+                namespaceRules.find { this.name == it.namespace || this.name.startsWith(it.namespace + "::") }
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
             } else {
                 val namespaceRules = GeneratorConfig.getSortRules().namespace
-                namespaceRules.find { this.namespace.startsWith(it.namespace) }
+                namespaceRules.find { this.namespace.startsWith(it.namespace + "::") }
                     ?.let {
                         return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
                     }
@@ -74,21 +74,6 @@ abstract class BaseType(
             regexRules.filter { !it.override }.find { this.name.matches(it.regex.toRegex()) }?.let {
                 return@run "$root/${it.dst}/${this.simpleName}.$HEADER_SUFFIX"
             }
-            if (this.isEnum()) {
-                if (!this.name.contains("::"))
-                    return@run "$root/enums/${this.simpleName}.$HEADER_SUFFIX"
-                return@run "$root/enums/${
-                    this.name.replace("::", "/").substringBeforeLast("/").toSnakeCase()
-                }/$simpleName.$HEADER_SUFFIX"
-            }
-            if (this.isUnion()) {
-                if (!this.name.contains("::"))
-                    return@run "$root/unions/${this.simpleName}.$HEADER_SUFFIX"
-                return@run "$root/unions/${
-                    this.name.replace("::", "/").substringBeforeLast("/").toSnakeCase()
-                }/$simpleName.$HEADER_SUFFIX"
-            }
-
             notSortedTypes.add(this.name)
             return@run "$root/${name.replace("::", "__")}.$HEADER_SUFFIX"
         }
