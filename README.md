@@ -15,3 +15,6 @@ ___
 Copyright [LiteLDev](https://github.com/LiteLDev), All Rights Reserved.
 
 _This project is licensed under the terms of the GNU Affero General Public License v3.0 license._
+
+This project has been archived since we have a new private header generation tool.
+---
